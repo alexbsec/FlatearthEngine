@@ -26,9 +26,7 @@ using float64 = double;
 #if defined(__cplusplus) && __cplusplus >= 201703L
 #define STATIC_ASSERT static_assert
 #else
-// Fallback to old compilers
-#define STATIC_ASSERT(condition, message)
-typedef char static_assertion_##message[(condition) ? 1 : -1]
+#error "C++17 or newer needed to proceed"
 #endif // STATIC_ASSERT
 
 // Ensure all types are of the correct size

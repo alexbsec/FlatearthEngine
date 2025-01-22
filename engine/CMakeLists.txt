@@ -3,7 +3,7 @@
 
 cmake_minimum_required(VERSION 3.29)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 ############################################################################
 #   SETTING GLOBAL PARAMETERS
@@ -42,7 +42,7 @@ if(UNIX AND NOT MSVC)
     set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
     # Enable position-independent code for shared libs on Unix
-    target_compile_options(${BINARY_NAME} private -fPIC)
+    target_compile_options(${BINARY_NAME} PRIVATE -fPIC)
 
     target_link_libraries(${BINARY_NAME}
         PRIVATE
