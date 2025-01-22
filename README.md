@@ -1,9 +1,10 @@
 # Flatearth Engine
 
-Flatearth engine is a project to create a game engine tailored for 2D games.
-The idea came from the fact that most engines focus solely on 3D rendering over 2D rendering. 
-Even though most industry level game engines do have 2D rendering support, I feel that an 
-engine focused solely on 2D rendering could come in handy for many developers and myself. 
+Flatearth Engine is a project to create a game engine tailored for 2D games.
+The idea originated from the observation that most game engines focus primarily on 3D rendering, 
+often treating 2D rendering as an afterthought. While many industry-standard game engines do support 
+2D rendering, a dedicated 2D engine can offer simplicity, performance, and ease
+of use for developers focusing on 2D games.
 
 ## Platform Support 
 
@@ -12,31 +13,31 @@ support both Windows and Linux operating systems.
 
 ## Tech Stack
 
-The game is going to be powered by C++23 as its core language and Vulkan for rendering.
+- Language: C++23
+- Rendering: Vulkan
 
 ## Project Structure
 
-We shall have the main Flatearth Engine entrypoint, which will be the main library 
-of code (dll and so) which is not executable, but it is referenced by the application. 
-All of the core objects are going to be stored in the Flatearth Engine. 
+1. Flatearth Engine Library
+The core engine library (shared object/dynamic link library) is not executable but
+is referenced by applications. It houses all core engine functionality, including rendering,
+physics, and memory management.
 
-The Game Application will reference the Flatearth Engine library entrypoint. 
-This should be a lightweight executable.
+2. Game Application
+A lightweight executable that references the Flatearth Engine Library. This serves as the entry
+point for games built on the engine.
 
-The Hot-Reloadable Code will serve as a support for the Game Application so that
-we can make it lightweight. This is also going to be a library (dll and so). The 
-idea is to have a lightweight Game Application running and make minor changes to our 
-game code using the Hot-Reloadable Code. The Hot-Reloadable Code should be responsible to 
-keep the compilation time fastar, and it also references the Flatearth Engine library.
+3. Hot-Reloadable Code
+A support library for the Game Application that allows lightweight runtime updates. It helps
+to keep the game application small and facilitates rapid iteration by minimizing compilation time.
 
-The Testsuite is going to be an executable similar to the Game Application, except that 
-it is only meant for testing specific game engine features. This also references the Flatearth 
-Engine library.
+4. Testsuite
+An executable designed to test specific features of the engine. Like the Game Application,
+it references the Flatearth Engine Library.
 
-Finally, the Editor is going to be an application on its own, and is going to stand
-separately from the Flatearth Engine library. The editor source code is going to be shipped 
-separately from the core engine. This is to make the engine even more lightweight and will 
-let us open the editor and the engine at the same time as two separate applications.
+5. Editor
+A standalone application separate from the core engine. The editor is designed for creating and
+managing game assets, and it can be run alongside the game application for real-time development.
 
 
 ## Features
@@ -54,7 +55,7 @@ let us open the editor and the engine at the same time as two separate applicati
 - Profiling/Debugging utilities
 - Scripting support via hot-reloading
 - Physics system
-- Networking for online multiplayer
+- Support for online multiplayer games.
 
 ## Build requirements
 
