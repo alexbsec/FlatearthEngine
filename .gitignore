@@ -1,0 +1,10 @@
+bin/
+.git/
+engine/build/*
+engine/.cache
+engine/compile_commands.json
+testing/build/*
+testing/.cache
+testing/compile_commands.json
+.vs/*
+.vscode/*
