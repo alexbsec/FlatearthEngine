@@ -16,7 +16,6 @@ int main() {
 
   while (FeTrue) {
     if (!platform.WindowIsOpen()) {
-      break;
     }
   }
 

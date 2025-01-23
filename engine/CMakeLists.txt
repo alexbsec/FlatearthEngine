@@ -53,7 +53,8 @@ if(UNIX AND NOT MSVC)
     )
 elseif(WIN32)
     if(MSVC)
-        target_compile_options(${BINARY_NAME} PRIVATE /W4 /permissive-)
+        # Add target name to target_compile_options
+        target_compile_options(${BINARY_NAME} PRIVATE /W4 /permissive- /std:c++latest)
     endif()
 endif()
 

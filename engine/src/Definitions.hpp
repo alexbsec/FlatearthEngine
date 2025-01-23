@@ -50,12 +50,13 @@ using sint64 = signed long long;
 using float32 = float;
 using float64 = double;
 
-// Properly define static assertions
-#if defined(__cplusplus) && __cplusplus >= 201703L
+#if defined(_MSVC_LANG) 
+#define STATIC_ASSERT static_assert
+#elif defined(__cplusplus) && __cplusplus >= 201703L
 #define STATIC_ASSERT static_assert
 #else
 #error "C++17 or newer needed to proceed"
-#endif // STATIC_ASSERT
+#endif
 
 // Ensure all types are of the correct size
 STATIC_ASSERT(sizeof(uchar) == 1, "Expected uchar to be 1 byte");

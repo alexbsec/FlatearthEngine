@@ -25,7 +25,7 @@ link_directories("${CMAKE_SOURCE_DIR}/../bin")
 
 # Add your test source files here
 set(SOURCE_FILES
-"${CMAKE_SOURCE_DIR}/src/main.cc"
+    "${CMAKE_SOURCE_DIR}/src/main.cc"
 )
 
 ############################################################################
@@ -43,6 +43,11 @@ if(UNIX AND NOT MSVC)
             X11-xcb
             xcb-keysyms
     )
+elseif(WIN32)
+    if(MSVC)
+        # Add target name to target_compile_options
+        target_compile_options(${BINARY_NAME} PRIVATE /W4 /permissive- /std:c++latest)
+    endif()
 endif()
 
 # Link against the Flatearth shared library.
