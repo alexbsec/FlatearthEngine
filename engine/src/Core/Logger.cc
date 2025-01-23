@@ -1,5 +1,6 @@
 #include "Logger.hpp"
 #include "Asserts.hpp"
+#include "Platform/Platform.hpp"
 
 #include <cstdarg>
 #include <cstdio>
@@ -39,7 +40,11 @@ FEAPI void LogOutput(LogLevel level, const char *message, ...) {
   va_end(argPtr);
 
   string sOut = string(levelStrings[level]) + string(out_message);
-  std::println("{}", sOut);
+  if (isError) {
+    platform::Platform::ConsoleError(sOut, level);
+  } else {
+    platform::Platform::ConsoleWrite(sOut, level);
+  } 
 }
 
 } // namespace logger

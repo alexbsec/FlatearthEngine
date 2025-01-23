@@ -1,7 +1,35 @@
 #ifndef _FLATEARTH_ENGINE_DEFINITIONS_HPP
 #define _FLATEARTH_ENGINE_DEFINITIONS_HPP
 
+#include <memory>
 #include <string>
+
+// Memory related
+using unique_void_ptr = std::unique_ptr<void, void (*)(void const *)>;
+
+namespace flatearth {
+
+template <typename T> auto unique_void(T *ptr) -> unique_void_ptr {
+  return unique_void_ptr(ptr, [](void const *data) {
+    T const *p = static_cast<T const *>(data);
+    delete p;
+  });
+}
+
+template <typename T> auto make_unique_void(T *ptr) -> unique_void_ptr {
+  return unique_void_ptr(ptr,
+                         [](const void *data) { // Use const void* to match the
+                                                // expected deleter type
+                           const T *p = static_cast<const T *>(data);
+                           delete p;
+                         });
+}
+
+template <typename T> T *get_unique_void_ptr(const unique_void_ptr &ptr) {
+  return static_cast<T *>(ptr.get());
+}
+
+} // namespace flatearth
 
 // String alias
 using string = std::string;
@@ -56,7 +84,7 @@ STATIC_ASSERT(sizeof(float64) == 8, "Expected float64 to be 8 bytes");
 #define FEPLATFORM_LINUX 1
 #if defined(__ANDROID__)
 #define FEPLATFORM_ANDROID 1
-#endif 
+#endif
 #elif defined(__unix__)
 #define FEPLATFORM_UNIX 1
 #elif define(_POSIX_VERSION)
