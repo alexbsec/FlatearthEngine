@@ -9,20 +9,11 @@ using unique_void_ptr = std::unique_ptr<void, void (*)(void const *)>;
 
 namespace flatearth {
 
-template <typename T> auto unique_void(T *ptr) -> unique_void_ptr {
+template <typename T> auto make_unique_void(T *ptr) -> unique_void_ptr {
   return unique_void_ptr(ptr, [](void const *data) {
     T const *p = static_cast<T const *>(data);
     delete p;
   });
-}
-
-template <typename T> auto make_unique_void(T *ptr) -> unique_void_ptr {
-  return unique_void_ptr(ptr,
-                         [](const void *data) { // Use const void* to match the
-                                                // expected deleter type
-                           const T *p = static_cast<const T *>(data);
-                           delete p;
-                         });
 }
 
 template <typename T> T *get_unique_void_ptr(const unique_void_ptr &ptr) {
