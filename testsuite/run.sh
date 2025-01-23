@@ -21,7 +21,7 @@ fi
 
 echo "############################# CMAKE STEP ######################################"
 
-if [ ! -f compile_commands.json ]; then
+if [ -f compile_commands.json ]; then
     echo "Cleaning old compile commands..."
     rm compile_commands.json
 fi
