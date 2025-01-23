@@ -16,16 +16,25 @@
 #define __debug_break() raise(SIGTRAP)
 #endif
 
+namespace flatearth {
+namespace core {
+namespace asserts {
+
 // Declaration for the assertion failure reporter.
 FEAPI void ReportAssertionFailure(const string &expression,
-                                  const string &message, const string file,
+                                  const string &message, const string &file,
                                   sint32 line);
+
+} // namespace asserts
+} // namespace core
+} // namespace flatearth
 
 // FASSERT: if expr is false, report and break.
 #define FASSERT(expr)                                                          \
   {                                                                            \
     if (!(expr)) {                                                             \
-      ReportAssertionFailure(#expr, "", __FILE__, __LINE__);                   \
+      flatearth::core::asserts::ReportAssertionFailure(#expr, "", __FILE__,    \
+                                                       __LINE__);              \
       __debug_break();                                                         \
     }                                                                          \
   }
@@ -34,7 +43,8 @@ FEAPI void ReportAssertionFailure(const string &expression,
 #define FASSERT_MSG(expr, message)                                             \
   {                                                                            \
     if (!(expr)) {                                                             \
-      ReportAssertionFailure(#expr, message, __FILE__, __LINE__);              \
+      flatearth::core::asserts::ReportAssertionFailure(#expr, message,         \
+                                                       __FILE__, __LINE__);    \
       __debug_break();                                                         \
     }                                                                          \
   }

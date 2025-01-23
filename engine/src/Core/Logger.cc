@@ -44,4 +44,18 @@ FEAPI void LogOutput(LogLevel level, const char *message, ...) {
 
 } // namespace logger
 } // namespace core
+
+namespace asserts {
+
+FEAPI void ReportAssertionFailure(const string &expression,
+                                  const string &message, const string &file,
+                                  sint32 line) {
+  core::logger::LogOutput(
+      core::logger::LOG_LEVEL_FATAL,
+      "Assertion Failure: %s, message: '%s', in file: %s, line: %d\n",
+      expression.c_str(), message.c_str(), file.c_str(), line);
+}
+
+} // namespace asserts
+
 } // namespace flatearth
