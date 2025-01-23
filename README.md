@@ -93,4 +93,15 @@ On Arch Linux or its derivatives (e.g., Manjaro), you can use pacman to install 
 ```bash
 sudo pacman -Syu xorg-server xorg-xrandr libx11 libxcb xcb-util xcb-util-wm xcb-util-image
 ```
+## Building
 
+Here's how you can build the project in your machine:
+
+### Linux
+
+To build in a Linux machine, just run the bash script `./build-all.sh`. The
+binaries are going to be placed inside the newly created `./bin` directory.
+
+### Windows
+
+Ongoing...
