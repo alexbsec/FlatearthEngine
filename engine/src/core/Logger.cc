@@ -11,8 +11,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-using namespace flatearth::logger;
-
 constexpr size_t LOGGER_BUFFER_SIZE = 32000;
 
 Logger::Logger() {
@@ -43,6 +41,6 @@ FEAPI void LogOutput(LogLevel level, const char *message, ...) {
   std::vsnprintf(out_message, sizeof(out_message), message, argPtr);
   va_end(argPtr);
 
-  string sOut = string(levelStrings[level]) + string(out_message) + "\n";
-  std::println("%s", sOut);
+  string sOut = string(levelStrings[level]) + string(out_message);
+  std::println("{}", sOut);
 }
