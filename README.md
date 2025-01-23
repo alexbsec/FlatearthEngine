@@ -93,6 +93,15 @@ On Arch Linux or its derivatives (e.g., Manjaro), you can use pacman to install 
 ```bash
 sudo pacman -Syu xorg-server xorg-xrandr libx11 libxcb xcb-util xcb-util-wm xcb-util-image
 ```
+
+### Windows
+
+#### MSVC 
+
+To build on Windows, make sure you have the latest version of MSVC installed if you are not
+compiling the program with clang or GNU. Make sure to also install the C++ Desktop Developer's
+kit for Visual Studio.
+
 ## Building
 
 Here's how you can build the project in your machine:
@@ -104,4 +113,6 @@ binaries are going to be placed inside the newly created `./bin` directory.
 
 ### Windows
 
-Ongoing...
+To build in a Windows machine, just run the batch script `.\build-all.bat` inside
+the developers terminal in Visual Studio. The binaries are going to be placed inside
+the newly created `.\bin` directory.
