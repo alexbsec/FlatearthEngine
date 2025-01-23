@@ -3,15 +3,18 @@
 
 #include <cstdarg>
 #include <cstdio>
-#include <print>
-#include <cstdio>
 #include <cstring>
+#include <print>
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
 constexpr size_t LOGGER_BUFFER_SIZE = 32000;
+
+namespace flatearth {
+namespace core {
+namespace logger {
 
 Logger::Logger() {
   // TODO: create constructor
@@ -22,14 +25,8 @@ Logger::~Logger() {
 }
 
 FEAPI void LogOutput(LogLevel level, const char *message, ...) {
-  const string levelStrings[6] = {
-        "[FATAL]: ",
-        "[ERROR]: ",
-        "[WARN]:  ",
-        "[INFO]:  ",
-        "[DEBUG]: ",
-        "[TRACE]: "
-  };
+  const string levelStrings[6] = {"[FATAL]: ", "[ERROR]: ", "[WARN]:  ",
+                                  "[INFO]:  ", "[DEBUG]: ", "[TRACE]: "};
 
   bool isError = (level < LOG_LEVEL_WARN);
 
@@ -44,3 +41,7 @@ FEAPI void LogOutput(LogLevel level, const char *message, ...) {
   string sOut = string(levelStrings[level]) + string(out_message);
   std::println("{}", sOut);
 }
+
+} // namespace logger
+} // namespace core
+} // namespace flatearth

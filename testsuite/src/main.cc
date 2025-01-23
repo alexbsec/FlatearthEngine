@@ -1,5 +1,7 @@
 #include <Core/Logger.hpp>
 
+using namespace flatearth::core::logger;
+
 int main() {
   FFATAL("Test fatal message, %f", 3.14);
   FERROR("Test error message, %f", 3.14);
