@@ -1,7 +1,7 @@
 # Flatearth Engine
 
-Flatearth Engine is a project to create a game engine tailored for 2D games.
-The idea originated from the observation that most game engines focus primarily on 3D rendering, 
+Flatearth Engine is an open-source project to create a game engine tailored for 2D games.
+The idea originated from the observation that most open-source game engines focus primarily on 3D rendering, 
 often treating 2D rendering as an afterthought. While many industry-standard game engines do support 
 2D rendering, a dedicated 2D engine can offer simplicity, performance, and ease
 of use for developers focusing on 2D games.
