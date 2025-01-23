@@ -57,6 +57,15 @@ managing game assets, and it can be run alongside the game application for real-
 - Physics system
 - Support for online multiplayer games.
 
+
+## Requirements
+
+### General
+
+- CMake 3.29 or later
+- C++23
+- Clang >= 19.1, G++ (GNU) >= 14.2, or MSVC >= 19.42 for Windows
+
 ## Build requirements
 
 ### Linux
