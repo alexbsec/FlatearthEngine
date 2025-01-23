@@ -22,7 +22,7 @@ LRESULT CALLBACK win32ProcessMessage(HWND hwnd, uint32 msg, WPARAM wParam,
 namespace flatearth {
 namespace platform {
 
-Platform::Platform(const string &application_name, sint32 x, sint32 y,
+Platform::Platform(const string &applicationName, sint32 x, sint32 y,
                    sint32 width, sint32 height)
     : _x_pos(x), _y_pos(y), _width(width), _height(height) {
   _state = new PlatformState();
@@ -78,7 +78,7 @@ Platform::Platform(const string &application_name, sint32 x, sint32 y,
   windowHeight += borderRect.bottom - borderRect.top;
 
   HWND handle = CreateWindowExA(windowExStyle, "flatearth_window_class",
-                                application_name.c_str(), windowStyle, windowX,
+                                applicationName.c_str(), windowStyle, windowX,
                                 windowY, windowWidth, windowHeight, 0, 0,
                                 inStatePtr->hInstance, 0);
 
@@ -117,7 +117,7 @@ Platform::~Platform() {
   delete _state;
 }
 
-bool Platform::WindowIsOpen() {
+bool Platform::PollEvents() {
   MSG message;
   while (PeekMessageA(&message, nullptr, 0, 0, PM_REMOVE)) {
     TranslateMessage(&message);

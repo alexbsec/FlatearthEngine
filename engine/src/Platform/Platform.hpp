@@ -14,11 +14,11 @@ struct PlatformState {
 
 class Platform {
 public:
-  FEAPI Platform(const string &application_name, sint32 x, sint32 y,
+  FEAPI Platform(const string &applicationName, sint32 x, sint32 y,
                  sint32 width, sint32 height);
   FEAPI ~Platform();
 
-  FEAPI bool WindowIsOpen();
+  FEAPI bool PollEvents();
   static void ConsoleWrite(const string &message, uchar color);
   static void ConsoleError(const string &message, uchar color);
 

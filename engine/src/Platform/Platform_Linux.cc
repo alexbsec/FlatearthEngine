@@ -26,7 +26,7 @@ struct InternalState {
 namespace flatearth {
 namespace platform {
 
-Platform::Platform(const string &application_name, sint32 x, sint32 y,
+Platform::Platform(const string &applicationName, sint32 x, sint32 y,
                    sint32 width, sint32 height)
     : _x_pos(x), _y_pos(y), _width(width), _height(height) {
 
@@ -91,7 +91,7 @@ Platform::Platform(const string &application_name, sint32 x, sint32 y,
   // Change title
   xcb_change_property(inStatePtr->connection, XCB_PROP_MODE_REPLACE,
                       inStatePtr->window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8,
-                      application_name.length(), application_name.c_str());
+                      applicationName.length(), applicationName.c_str());
 
   // Tell the server to notify when the window manager attempts to destroy the
   // window
@@ -141,7 +141,7 @@ Platform::~Platform() {
   delete _state;
 }
 
-bool Platform::WindowIsOpen() {
+bool Platform::PollEvents() {
   // Cold-cast state
   InternalState *inStatePtr =
       get_unique_void_ptr<InternalState>(_state->internalState);
