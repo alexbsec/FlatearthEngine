@@ -1,4 +1,4 @@
-#include <core/Logger.hpp>
+#include <Core/Logger.hpp>
 
 int main() {
   FFATAL("Test fatal message, %f", 3.14);
