@@ -2,8 +2,8 @@
 
 #include "Logger.hpp"
 #include "Platform/Platform.hpp"
-#include <print>
 #include <ostream>
+#include <print>
 #include <sstream>
 
 namespace flatearth {
@@ -20,8 +20,8 @@ MemoryManager::MemoryManager() {
 }
 
 void *MemoryManager::Allocate(uint64 size, MemoryTag tag) {
-  CheckTag(tag, "MemoryManager::Allocate()"); 
-  
+  CheckTag(tag, "MemoryManager::Allocate()");
+
   // Track how much memory used by category
   _memoryBlock.totalAllocated += size;
   _memoryBlock.taggedAllocations[tag] += size;
@@ -81,18 +81,20 @@ string MemoryManager::PrintMemoryUsage() const {
       amount = (float32)taggedAlloc;
     }
 
-    const string &out = std::format("{}: {:.2f}{}\n", memTagNames[i], amount, unit);
-    oss << out; 
+    const string &out =
+        std::format("{:<15}: {:>10.2f} {}\n", memTagNames[i], amount, unit);
+    oss << out;
     std::print("{}", out);
   }
 
-  return oss.str(); 
+  return oss.str();
 }
 
-void MemoryManager::CheckTag(MemoryTag tag, const string& from) {
+void MemoryManager::CheckTag(MemoryTag tag, const string &from) {
   if (tag == MEMORY_TAG_UNKNOWN) {
     FWARN("%s: calling memory management using MEMORY_TAG_UNKNOWN. Consider "
-          "re-classing this block", from.c_str());
+          "re-classing this block",
+          from.c_str());
   }
 }
 
