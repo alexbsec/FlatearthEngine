@@ -18,7 +18,8 @@ bool GameTest::GameRender(gametypes::game *gameInstance, float32 deltaTime) {
   return FeTrue;
 }
 
-void GameTest::GameOnResize(gametypes::game *gameInstance, uint32 width, uint32 height) {}
+void GameTest::GameOnResize(gametypes::game *gameInstance, uint32 width,
+                            uint32 height) {}
 
-}
-}
+} // namespace testsuite
+} // namespace flatearth

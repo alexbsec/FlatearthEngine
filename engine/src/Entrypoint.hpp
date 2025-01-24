@@ -2,22 +2,27 @@
 #define _FLATEARTH_ENGINE_ENTRYPOINT_HPP
 
 #include "Core/Application.hpp"
+#include "Core/FeMemory.hpp"
 #include "Core/Logger.hpp"
 #include "GameTypes.hpp"
 
-extern bool CreateGame(flatearth::gametypes::game *gameOut);
+extern bool CreateGame(flatearth::gametypes::game *gameOut, flatearth::core::memory::MemoryManager &memManager);
 
 int main(void) {
+  flatearth::core::memory::MemoryManager memoryManager;
+
   flatearth::gametypes::game gameInst;
 
-  if (!CreateGame(&gameInst)) {
+  if (!CreateGame(&gameInst, memoryManager)) {
     FFATAL("main(): could not create game!");
     return -2;
   }
 
   // Ensure the function pointers are defined
-  if (!gameInst.Initialize || !gameInst.Update || !gameInst.Render || !gameInst.OnResize) {
-    FFATAL("main(): one or more of the game's function pointers are not defined");
+  if (!gameInst.Initialize || !gameInst.Update || !gameInst.Render ||
+      !gameInst.OnResize) {
+    FFATAL(
+        "main(): one or more of the game's function pointers are not defined");
     return -1;
   }
 
@@ -27,6 +32,8 @@ int main(void) {
     FINFO("main(): the game's function failed to create");
     return 1;
   }
+  
+  memoryManager.PrintMemoryUsage();
 
   // Begin game loop
   if (!gameApp.Run()) {

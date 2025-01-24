@@ -1,4 +1,5 @@
 #include "Platform.hpp"
+#include <cstring>
 
 #if FEPLATFORM_LINUX
 
@@ -191,6 +192,27 @@ bool Platform::PollEvents() {
   }
 
   return !quitFlag;
+}
+
+void *Platform::AllocateMemory(uint64 size, bool aligned) {
+  // TODO: alignment
+  return malloc(size);
+}
+
+void Platform::FreeMemory(void *block, bool aligned) {
+  free(block);
+}
+
+void *Platform::ZeroMemory(void *block, uint64 size) {
+  return memset(block, 0, size);
+}
+
+void *Platform::CopyMemory(void *dest, const void *source, uint64 size) {
+  return memcpy(dest, source, size);
+}
+
+void *Platform::SetMemory(void *dest, sint32 value, uint64 size) {
+  return memset(dest, value, size);
 }
 
 void Platform::ConsoleWrite(const string& message, uchar color) {

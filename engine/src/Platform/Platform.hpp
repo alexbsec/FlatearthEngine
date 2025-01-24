@@ -14,11 +14,17 @@ struct PlatformState {
 
 class Platform {
 public:
-  FEAPI Platform(const string &applicationName, sint32 x, sint32 y,
+  Platform(const string &applicationName, sint32 x, sint32 y,
                  sint32 width, sint32 height);
-  FEAPI ~Platform();
+  ~Platform();
 
-  FEAPI bool PollEvents();
+  bool PollEvents();
+
+  static void *AllocateMemory(uint64 size, bool aligned);
+  static void FreeMemory(void *block, bool aligned);
+  static void *ZeroMemory(void *block, uint64 size);
+  static void *CopyMemory(void *dest, const void *source, uint64 size);
+  static void *SetMemory(void *dest, sint32 value, uint64 size);
   static void ConsoleWrite(const string &message, uchar color);
   static void ConsoleError(const string &message, uchar color);
 

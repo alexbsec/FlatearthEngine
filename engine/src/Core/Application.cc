@@ -1,6 +1,5 @@
 #include "Application.hpp"
 #include "GameTypes.hpp"
-#include <stdexcept>
 
 namespace flatearth {
 namespace core {
@@ -66,7 +65,7 @@ bool App::Run() {
   if (!initialized) {
     FWARN("App::Run(): run method was called, but app was not initialized.");
     return FeFalse;
-  }
+  }   
 
   while (_appState.isRunning) {
     if (!_platform->PollEvents()) {
