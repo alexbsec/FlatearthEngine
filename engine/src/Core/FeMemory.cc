@@ -10,13 +10,13 @@ namespace flatearth {
 namespace core {
 namespace memory {
 
-static constexpr std::array<string, MEMORY_TAG_MAX_TAGS> memTagNames = {
+static constexpr std::array<vstring, MEMORY_TAG_MAX_TAGS> memTagNames = {
     "UNKNOWN", "ARRAY",       "DARRAY", "DICT",        "RING_QUEUE", "BST",
     "STRING",  "APPLICATION", "JOB",    "TEXTURE",     "MAT_INST",   "RENDERER",
     "GAME",    "TRANSFORM",   "ENTITY", "ENTITY_NODE", "SCENE"};
 
 MemoryManager::MemoryManager() {
-  platform::Platform::ZeroMemory(&_memoryBlock, sizeof(_memoryBlock));
+  platform::Platform::PZeroMemory(&_memoryBlock, sizeof(_memoryBlock));
 }
 
 void *MemoryManager::Allocate(uint64 size, MemoryTag tag) {
@@ -28,8 +28,8 @@ void *MemoryManager::Allocate(uint64 size, MemoryTag tag) {
 
   // TODO: memory alignment
   bool aligned = FeFalse;
-  void *block = platform::Platform::AllocateMemory(size, aligned);
-  platform::Platform::ZeroMemory(block, size);
+  void *block = platform::Platform::PAllocateMemory(size, aligned);
+  platform::Platform::PZeroMemory(block, size);
   return block;
 }
 
@@ -40,19 +40,19 @@ void MemoryManager::Free(void *block, uint64 size, MemoryTag tag) {
   _memoryBlock.taggedAllocations[tag] -= size;
 
   bool aligned = FeFalse;
-  platform::Platform::FreeMemory(block, aligned);
+  platform::Platform::PFreeMemory(block, aligned);
 }
 
 void *MemoryManager::ZeroMemory(void *block, uint64 size) {
-  return platform::Platform::ZeroMemory(block, size);
+  return platform::Platform::PZeroMemory(block, size);
 }
 
 void *MemoryManager::CopyMemory(void *dest, const void *source, uint64 size) {
-  return platform::Platform::CopyMemory(dest, source, size);
+  return platform::Platform::PCopyMemory(dest, source, size);
 }
 
-void *SetMemory(void *dest, sint32 value, uint64 size) {
-  return platform::Platform::SetMemory(dest, value, size);
+void *MemoryManager::SetMemory(void *dest, sint32 value, uint64 size) {
+  return platform::Platform::PSetMemory(dest, value, size);
 }
 
 string MemoryManager::PrintMemoryUsage() const {

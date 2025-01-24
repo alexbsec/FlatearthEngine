@@ -20,11 +20,11 @@ public:
 
   bool PollEvents();
 
-  static void *AllocateMemory(uint64 size, bool aligned);
-  static void FreeMemory(void *block, bool aligned);
-  static void *ZeroMemory(void *block, uint64 size);
-  static void *CopyMemory(void *dest, const void *source, uint64 size);
-  static void *SetMemory(void *dest, sint32 value, uint64 size);
+  static void *PAllocateMemory(uint64 size, bool aligned);
+  static void PFreeMemory(void *block, bool aligned);
+  static void *PZeroMemory(void *block, uint64 size);
+  static void *PCopyMemory(void *dest, const void *source, uint64 size);
+  static void *PSetMemory(void *dest, sint32 value, uint64 size);
   static void ConsoleWrite(const string &message, uchar color);
   static void ConsoleError(const string &message, uchar color);
 

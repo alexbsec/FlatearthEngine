@@ -24,6 +24,7 @@ template <typename T> T *get_unique_void_ptr(const unique_void_ptr &ptr) {
 
 // String alias
 using string = std::string;
+using vstring = std::string_view;
 
 // Unsigned types
 using uchar = unsigned char;

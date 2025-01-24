@@ -68,10 +68,15 @@ bool App::Run() {
   }   
 
   while (_appState.isRunning) {
+
+#if FEPLATFORM_WINDOWS
+    _platform->PollEvents();
+#elif FEPLATFORM_LINUX
     if (!_platform->PollEvents()) {
       FDEBUG("App::Run(): closing window was requested");
       _appState.isRunning = FeFalse;
     }
+#endif
 
     if (_appState.isSuspended) {
       continue;

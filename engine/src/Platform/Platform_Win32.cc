@@ -1,12 +1,12 @@
 #include "Platform.hpp"
 
 #if FEPLATFORM_WINDOWS
-
 #include "Core/Logger.hpp"
 
 #include <stdexcept>
 #include <windows.h>
 #include <windowsx.h>
+#include <cstring>
 
 struct InternalState {
   HINSTANCE hInstance;
@@ -125,6 +125,27 @@ bool Platform::PollEvents() {
   }
 
   return FeFalse;
+}
+
+void* Platform::PAllocateMemory(uint64 size, bool aligned) {
+  // TODO: alignment
+  return malloc(size);
+}
+
+void Platform::PFreeMemory(void* block, bool aligned) {
+  free(block);
+}
+
+void* Platform::PZeroMemory(void* block, uint64 size) {
+  return memset(block, 0, size);
+}
+
+void* Platform::PCopyMemory(void* dest, const void* source, uint64 size) {
+  return memcpy(dest, source, size);
+}
+
+void* Platform::PSetMemory(void* dest, sint32 value, uint64 size) {
+  return memset(dest, value, size);
 }
 
 void Platform::ConsoleWrite(const string &message, uchar color) {
