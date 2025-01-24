@@ -126,7 +126,7 @@ Platform::Platform(const string &applicationName, sint32 x, sint32 y,
   if (streamResult <= 0) {
     FFATAL("An error occurred when flushing the stream: %d", streamResult);
     throw std::runtime_error(
-        "Platform: failed tot flush the stream when creating the window");
+        "Platform: failed to flush the stream when creating the window");
   }
 }
 
