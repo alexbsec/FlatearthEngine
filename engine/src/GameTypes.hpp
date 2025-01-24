@@ -26,7 +26,11 @@ struct game {
       OnResize;
 
   // Game-specific game state. Created and managed by the game
-  unique_void_ptr state;
+  void *state;
+
+  game()
+      : Initialize(nullptr), Update(nullptr), Render(nullptr),
+        OnResize(nullptr) {}
 };
 
 } // namespace gametypes

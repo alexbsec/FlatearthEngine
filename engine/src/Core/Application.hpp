@@ -48,7 +48,9 @@ struct ApplicationState {
 class App {
 public:
   FEAPI App(struct gametypes::game *gameInstance);
+  FEAPI ~App();
 
+  FEAPI bool Init();
   FEAPI bool Run();
 
 private:

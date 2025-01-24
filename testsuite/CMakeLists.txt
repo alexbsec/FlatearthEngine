@@ -25,7 +25,8 @@ link_directories("${CMAKE_SOURCE_DIR}/../bin")
 
 # Add your test source files here
 set(SOURCE_FILES
-    "${CMAKE_SOURCE_DIR}/src/main.cc"
+    "${CMAKE_SOURCE_DIR}/src/Game.cc"
+    "${CMAKE_SOURCE_DIR}/src/Entrypoint.cc"
 )
 
 ############################################################################

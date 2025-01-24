@@ -176,11 +176,9 @@ bool Platform::PollEvents() {
     case XCB_CLIENT_MESSAGE: {
       // Close request
       cm = (xcb_client_message_event_t *)event;
-      FDEBUG("Client message received: data32[0] = %u, wm_delete_win = %u",
-             cm->data.data32[0], inStatePtr->wm_delete_win);
       if (cm->data.data32[0] == inStatePtr->wm_delete_win) {
         // window close event
-        FDEBUG("Platform: close requested, quit flagging true.");
+        FDEBUG("Platform::PollEvents(): close requested, quit flagging true.");
         quitFlag = FeTrue;
       }
     } break;
