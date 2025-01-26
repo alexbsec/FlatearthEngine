@@ -6,14 +6,14 @@
 #include "Core/Logger.hpp"
 #include "GameTypes.hpp"
 
-extern bool CreateGame(flatearth::gametypes::game *gameOut, flatearth::core::memory::MemoryManager &memManager);
+extern bool CreateGame(flatearth::gametypes::game *gameOut);
 
 int main(void) {
   flatearth::core::memory::MemoryManager memoryManager;
 
   flatearth::gametypes::game gameInst;
 
-  if (!CreateGame(&gameInst, memoryManager)) {
+  if (!CreateGame(&gameInst)) {
     FFATAL("main(): could not create game!");
     return -2;
   }
@@ -32,7 +32,7 @@ int main(void) {
     FINFO("main(): the game's function failed to create");
     return 1;
   }
-  
+
   memoryManager.PrintMemoryUsage();
 
   // Begin game loop

@@ -172,7 +172,7 @@ template <typename T> void DArray<T>::InsertAt(const T &element, uint64 index) {
 
 template <typename T> void DArray<T>::PopAt(uint64 index) {
   if (index >= _length) {
-    FERROR("DArray<T>::InsertAt(): attempt to insert at invalid index");
+    FERROR("DArray<T>::InsertAt(): attempt to pop at invalid index");
     return;
   }
 

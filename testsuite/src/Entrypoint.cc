@@ -1,11 +1,10 @@
 #include "Game.hpp"
 
+#include <Containers/DArray.hpp>
 #include <Core/FeMemory.hpp>
 #include <Entrypoint.hpp>
-#include <Containers/DArray.hpp>
 
-bool CreateGame(flatearth::gametypes::game *gameOut,
-                flatearth::core::memory::MemoryManager &memManager) {
+bool CreateGame(flatearth::gametypes::game *gameOut) {
   gameOut->appConfig.startPosX = 100;
   gameOut->appConfig.startPosY = 100;
   gameOut->appConfig.startWidth = 1280;
@@ -18,15 +17,15 @@ bool CreateGame(flatearth::gametypes::game *gameOut,
   gameOut->Render = flatearth::testsuite::GameTest::GameRender;
   gameOut->OnResize = flatearth::testsuite::GameTest::GameOnResize;
 
-  gameOut->state =
-      memManager.Allocate(sizeof(flatearth::testsuite::GameState),
-                          flatearth::core::memory::MEMORY_TAG_GAME);
+  gameOut->state = flatearth::core::memory::MemoryManager::Allocate(
+      sizeof(flatearth::testsuite::GameState),
+      flatearth::core::memory::MEMORY_TAG_GAME);
 
   flatearth::containers::DArray<int> array;
   for (int i = 0; i < 10; i++) {
     array.Push(i);
   }
- 
+
   array.InsertAt(43, 5);
 
   for (int i = 0; i < array.GetLength(); i++) {
@@ -36,6 +35,7 @@ bool CreateGame(flatearth::gametypes::game *gameOut,
   uint64 size = array.GetLength();
   FDEBUG("Array len: %d", size);
 
+  array.PopAt(343);
 
   return FeTrue;
 }
