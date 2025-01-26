@@ -23,9 +23,18 @@ bool CreateGame(flatearth::gametypes::game *gameOut,
                           flatearth::core::memory::MEMORY_TAG_GAME);
 
   flatearth::containers::DArray<int> array;
-  array.Push(2);
-  array.Push(4);
-  array.Pop();
+  for (int i = 0; i < 10; i++) {
+    array.Push(i);
+  }
+ 
+  array.InsertAt(43, 5);
+
+  for (int i = 0; i < array.GetLength(); i++) {
+    FDEBUG("Array entry at %d: %d", i, array[i]);
+  }
+
+  uint64 size = array.GetLength();
+  FDEBUG("Array len: %d", size);
 
 
   return FeTrue;

@@ -7,20 +7,24 @@
 #include "Core/Logger.hpp"
 #include <cstring>
 #include <memory>
+#include <stdexcept>
 
 namespace flatearth {
 namespace containers {
 
-
 template <typename T> class DArray {
 public:
+  // Custom deleter to be able to track memory usage
   static void CustomDeleter(T *ptr) {
-  core::memory::MemoryManager::Free(ptr, DARRAY_DEFAULT_SIZE * sizeof(T),
-                                    core::memory::MEMORY_TAG_DARRAY);
+    core::memory::MemoryManager::Free(ptr, DARRAY_DEFAULT_SIZE * sizeof(T),
+                                      core::memory::MEMORY_TAG_DARRAY);
   }
+
+  // Constants
   FEAPI static constexpr uint64 DARRAY_DEFAULT_SIZE = 1;
   FEAPI static constexpr uchar DARRAY_RESIZE_FACTOR = 2;
   FEAPI static constexpr uint64 DARRAY_FIELD_LENGTH = 3;
+
   FEAPI DArray(uint64 stride = sizeof(T));
   FEAPI DArray(uint64 capacity, uint64 stride = sizeof(T));
   FEAPI ~DArray() = default;
@@ -43,13 +47,17 @@ public:
   FEAPI void PopAt(uint64 index);
   FEAPI void Clear();
 
+  // Operators
+  T &operator[](uint64 index);
+  const T &operator[](uint64 index) const;
+
 private:
   void InitializeMemory();
 
   uint64 _capacity;
   uint64 _length;
   uint64 _stride;
-  std::unique_ptr<T[], decltype(&CustomDeleter)>_array;
+  std::unique_ptr<T[], decltype(&CustomDeleter)> _array;
 };
 
 template <typename T>
@@ -155,7 +163,7 @@ template <typename T> void DArray<T>::InsertAt(const T &element, uint64 index) {
 
   // Get the insert location
   T *insertLoc = reinterpret_cast<T *>(
-      reinterpret_cast<char *>(_array.get() + (index * _stride)));
+      reinterpret_cast<char *>(_array.get()) + (index * _stride));
 
   // Insert the new element at the insert location
   core::memory::MemoryManager::CopyMemory(insertLoc, &element, _stride);
@@ -196,6 +204,26 @@ template <typename T> void DArray<T>::Clear() {
   }
 
   _length = 0;
+}
+
+template <typename T> T &DArray<T>::operator[](uint64 index) {
+  if (index >= _length) {
+    FERROR("DArray<T>::operator[]: index out of bounds");
+    throw std::out_of_range("Index out of bounds in DArray");
+  }
+
+  return *reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
+                                (index * _stride));
+}
+
+template <typename T> const T &DArray<T>::operator[](uint64 index) const {
+  if (index >= _length) {
+    FERROR("DArray<T>::operator[]: index out of bounds");
+    throw std::out_of_range("Index out of bounds in DArray");
+  }
+
+  return *reinterpret_cast<const T *>(
+      reinterpret_cast<const char *>(_array.get()) + (index * _stride));
 }
 
 // PRIVATE
