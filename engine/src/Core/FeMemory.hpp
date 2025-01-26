@@ -39,13 +39,11 @@ struct MemoryBlock {
 
 class MemoryManager {
 public:
-  FEAPI MemoryManager();
-
-  FEAPI void *Allocate(uint64 size, MemoryTag tag);
-  FEAPI void Free(void *block, uint64 size, MemoryTag tag);
-  FEAPI void *ZeroMemory(void *block, uint64 size);
-  FEAPI void *CopyMemory(void *dest, const void *source, uint64 size);
-  FEAPI void *SetMemory(void *dest, sint32 value, uint64 size);
+  FEAPI static void *Allocate(uint64 size, MemoryTag tag);
+  FEAPI static void Free(void *block, uint64 size, MemoryTag tag);
+  FEAPI static void *ZeroMemory(void *block, uint64 size);
+  FEAPI static void *CopyMemory(void *dest, const void *source, uint64 size);
+  FEAPI static void *SetMemory(void *dest, sint32 value, uint64 size);
   FEAPI string PrintMemoryUsage() const;
 
 private:
