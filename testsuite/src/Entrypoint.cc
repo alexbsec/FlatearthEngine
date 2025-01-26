@@ -2,6 +2,7 @@
 
 #include <Core/FeMemory.hpp>
 #include <Entrypoint.hpp>
+#include <Containers/DArray.hpp>
 
 bool CreateGame(flatearth::gametypes::game *gameOut,
                 flatearth::core::memory::MemoryManager &memManager) {
@@ -20,6 +21,12 @@ bool CreateGame(flatearth::gametypes::game *gameOut,
   gameOut->state =
       memManager.Allocate(sizeof(flatearth::testsuite::GameState),
                           flatearth::core::memory::MEMORY_TAG_GAME);
+
+  flatearth::containers::DArray<int> array;
+  array.Push(2);
+  array.Push(4);
+  array.Pop();
+
 
   return FeTrue;
 }

@@ -10,6 +10,8 @@ namespace flatearth {
 namespace core {
 namespace memory {
 
+MemoryBlock MemoryManager::_memoryBlock;
+
 static constexpr std::array<vstring, MEMORY_TAG_MAX_TAGS> memTagNames = {
     "UNKNOWN", "ARRAY",       "DARRAY", "DICT",        "RING_QUEUE", "BST",
     "STRING",  "APPLICATION", "JOB",    "TEXTURE",     "MAT_INST",   "RENDERER",

@@ -39,6 +39,8 @@ struct MemoryBlock {
 
 class MemoryManager {
 public:
+  MemoryManager();
+
   FEAPI static void *Allocate(uint64 size, MemoryTag tag);
   FEAPI static void Free(void *block, uint64 size, MemoryTag tag);
   FEAPI static void *ZeroMemory(void *block, uint64 size);
@@ -47,9 +49,9 @@ public:
   FEAPI string PrintMemoryUsage() const;
 
 private:
-  void CheckTag(MemoryTag tag, const string& from);
+  static void CheckTag(MemoryTag tag, const string& from);
   
-  MemoryBlock _memoryBlock;
+  static MemoryBlock _memoryBlock;
 };
 
 }
