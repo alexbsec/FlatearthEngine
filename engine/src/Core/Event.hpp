@@ -1,6 +1,7 @@
 #ifndef _FLATEARTH_ENGINE_EVENT_HPP
 #define _FLATEARTH_ENGINE_EVENT_HPP
 
+#include "Containers/DArray.hpp"
 #include "Definitions.hpp"
 #include <array>
 #include <functional>
@@ -45,7 +46,7 @@ enum class SystemEventCode : ushort {
    */
   EVENT_CODE_MOUSE_MOVED = 0x06,
 
-  // Mouse wheel moved
+  // Mouse wheel moved on_even
   /* Context usage:
    * u8 z_delta = data.data.u8[0];
    */
@@ -60,6 +61,12 @@ enum class SystemEventCode : ushort {
 
   MAX_EVENT_CODE = 0xFF,
 };
+
+constexpr ushort MAX_EVENTS = 17236;
+
+constexpr ushort ToUnderlying(SystemEventCode code) {
+  return static_cast<ulong>(code);
+}
 
 class EventContext {
 public:
@@ -80,11 +87,29 @@ public:
   }
 };
 
-using EventCallback = std::function<bool(const EventContext &)>;
+using EventCallback = std::function<bool(SystemEventCode code, void *sender,
+                                         void *listener, const EventContext &)>;
+
+struct RegisteredEvent {
+  void *listener;
+  EventCallback callback;
+  bool operator==(const RegisteredEvent &other) const {
+    return listener == other.listener &&
+           callback.target<void>() == other.callback.target<void>();
+  }
+};
+
+struct EventCodeEntry {
+  std::unique_ptr<containers::DArray<RegisteredEvent>> events;
+};
+
+struct EventSystemState {
+  std::array<EventCodeEntry, MAX_EVENTS> registered;
+};
 
 class EventManager {
 public:
-  FEAPI EventManager();
+  FEAPI static EventManager &GetInstance();
   FEAPI ~EventManager();
 
   /**
@@ -127,17 +152,12 @@ public:
                        EventContext &context);
 
 private:
-  struct Listener {
-    void *listener;
-    EventCallback callback;
+  EventManager();
+  static bool _isInitialized;
+  EventSystemState _state;
 
-    bool operator==(const Listener &other) const {
-      return listener == other.listener &&
-             callback.target_type() == other.callback.target_type();
-    }
-  };
-
-  std::unordered_map<ushort, std::vector<Listener>> _listeners;
+  // Usage:
+  // EventManager& manager = EventManager::GetInstance();
 };
 
 } // namespace events

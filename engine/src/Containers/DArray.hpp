@@ -51,6 +51,9 @@ public:
   T &operator[](uint64 index);
   const T &operator[](uint64 index) const;
 
+  // Checkers
+  bool IsEmpty() const;
+
 private:
   void InitializeMemory();
 
@@ -224,6 +227,10 @@ template <typename T> const T &DArray<T>::operator[](uint64 index) const {
 
   return *reinterpret_cast<const T *>(
       reinterpret_cast<const char *>(_array.get()) + (index * _stride));
+}
+
+template <typename T> bool DArray<T>::IsEmpty() const {
+  return _length == 0;
 }
 
 // PRIVATE

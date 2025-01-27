@@ -30,12 +30,14 @@ using vstring = std::string_view;
 using uchar = unsigned char;
 using ushort = unsigned short;
 using uint32 = unsigned int;
+using ulong = unsigned long;
 using uint64 = unsigned long long;
 
 // Signed types
 using schar = signed char;
 using sshort = signed short;
 using sint32 = signed int;
+using slong  = signed long;
 using sint64 = signed long long;
 
 // Floating point types

@@ -7,7 +7,8 @@ namespace application {
 
 static bool initialized = FeFalse;
 
-App::App(struct gametypes::game *gameInstance) {
+App::App(struct gametypes::game *gameInstance)
+ : _eventManager(core::events::EventManager::GetInstance()) {
 
   _appState.gameInstance = gameInstance;
 
