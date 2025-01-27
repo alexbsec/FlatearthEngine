@@ -21,31 +21,31 @@ public:
   }
 
   // Constants
-  FEAPI static constexpr uint64 DARRAY_DEFAULT_SIZE = 1;
-  FEAPI static constexpr uchar DARRAY_RESIZE_FACTOR = 2;
-  FEAPI static constexpr uint64 DARRAY_FIELD_LENGTH = 3;
+  static constexpr uint64 DARRAY_DEFAULT_SIZE = 1;
+  static constexpr uchar DARRAY_RESIZE_FACTOR = 2;
+  static constexpr uint64 DARRAY_FIELD_LENGTH = 3;
 
-  FEAPI DArray(uint64 stride = sizeof(T));
-  FEAPI DArray(uint64 capacity, uint64 stride = sizeof(T));
-  FEAPI ~DArray() = default;
+  DArray(uint64 stride = sizeof(T));
+  DArray(uint64 capacity, uint64 stride = sizeof(T));
+  ~DArray() = default;
 
-  FEAPI uint64 GetCapacity() const;
-  FEAPI void SetCapacity(uint64 capacity);
+  uint64 GetCapacity() const;
+  void SetCapacity(uint64 capacity);
 
-  FEAPI uint64 GetLength() const;
-  FEAPI void SetLength(uint64 length);
+  uint64 GetLength() const;
+  void SetLength(uint64 length);
 
-  FEAPI uint64 GetStride() const;
-  FEAPI void SetStride(uint64 stride);
+  uint64 GetStride() const;
+  void SetStride(uint64 stride);
 
-  FEAPI void Resize();
+  void Resize();
 
-  FEAPI void Push(const T &element);
-  FEAPI void Pop();
+  void Push(const T &element);
+  void Pop();
 
-  FEAPI void InsertAt(const T &element, uint64 index);
-  FEAPI void PopAt(uint64 index);
-  FEAPI void Clear();
+  void InsertAt(const T &element, uint64 index);
+  void PopAt(uint64 index);
+  void Clear();
 
   // Operators
   T &operator[](uint64 index);

@@ -39,7 +39,7 @@ struct MemoryBlock {
 
 class MemoryManager {
 public:
-  MemoryManager();
+  FEAPI MemoryManager();
 
   FEAPI static void *Allocate(uint64 size, MemoryTag tag);
   FEAPI static void Free(void *block, uint64 size, MemoryTag tag);
