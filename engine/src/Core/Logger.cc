@@ -19,9 +19,11 @@ namespace logger {
 
 Logger::Logger() {
   // TODO: create constructor
+  FINFO("Logger::Logger(): logger was correctly initialized");
 }
 
 Logger::~Logger() {
+  FINFO("Logger::~Logger(): shutting down logger...");
   // TODO: create destructor
 }
 

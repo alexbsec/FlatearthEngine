@@ -18,6 +18,7 @@ static constexpr std::array<vstring, MEMORY_TAG_MAX_TAGS> memTagNames = {
     "GAME",    "TRANSFORM",   "ENTITY", "ENTITY_NODE", "SCENE"};
 
 MemoryManager::MemoryManager() {
+  FINFO("MemoryManager::MemoryManager(): memory manager correctly initialized");
   platform::Platform::PZeroMemory(&_memoryBlock, sizeof(_memoryBlock));
 }
 

@@ -8,15 +8,19 @@ namespace application {
 static bool initialized = FeFalse;
 
 App::App(struct gametypes::game *gameInstance)
- : _eventManager(core::events::EventManager::GetInstance()) {
+ : _eventManager(core::events::EventManager::GetInstance())
+ , _inputManager(core::input::InputManager::GetInstance()) {
 
   _appState.gameInstance = gameInstance;
 
   // TODO: implement logger constructor
   _logger = std::make_unique<logger::Logger>();
+
+  FINFO("App::App(): application was correctly initialized");
 }
 
 App::~App() {
+  FINFO("App::~App(): shutting down application...");
   initialized = FeFalse;
 }
 
@@ -84,6 +88,8 @@ bool App::Run() {
       FFATAL("App::Run(): game render failed, shutting down application...");
       break;
     }
+
+    _inputManager.Update(0);
   }
 
   _appState.isRunning = FeFalse;

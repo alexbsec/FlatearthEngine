@@ -23,10 +23,12 @@ EventManager::EventManager() {
   }
 
   core::memory::MemoryManager::ZeroMemory(&_state, sizeof(_state));
+  FINFO("EventManager::EventManager(): event manager correctly initialized");
   _isInitialized = FeTrue;
 }
 
 EventManager::~EventManager() {
+  FINFO("EventManager::~EventManager(): shutting down event manager...");
   for (ushort i = 0; i < MAX_EVENTS; i++) {
     if (_state.registered[i].events != nullptr) {
       _state.registered[i].events->Clear();
@@ -82,7 +84,8 @@ bool EventManager::UnregisterEvent(SystemEventCode code, void *listener,
   return FeFalse;
 }
 
-bool EventManager::FireEvent(SystemEventCode code, void *sender, EventContext &context) {
+bool EventManager::FireEvent(SystemEventCode code, void *sender,
+                             EventContext &context) {
   ushort ccode = ToUnderlying(code);
   // If nothing is registered for the code, do nothing
   if (_state.registered[ccode].events == nullptr) {

@@ -5,6 +5,7 @@
 #include "Definitions.hpp"
 #include <array>
 #include <functional>
+#include <stdexcept>
 #include <variant>
 
 namespace flatearth {
@@ -78,7 +79,26 @@ public:
 
   VariantType data;
 
+  // Default setter
   template <typename T> void set(const T &value) { data = value; }
+
+  // Smart setter
+  template <typename T>
+  void set(size_t index, const typename T::value_type &value) {
+    if (auto arrayPtr = std::get_if<T>(&data)) {
+      if (index >= arrayPtr->size()) {
+        FERROR("EventContext::set(): attempt to insert a value to variant in "
+               "out of bounds position");
+        throw std::out_of_range("Index out of bounds");
+      }
+      // Update the specific element
+      (*arrayPtr)[index] = value;
+    } else {
+      FERROR("EventContext::set(): got a type mismatch, data is not of the "
+             "requested type");
+      throw std::invalid_argument("Type mismatch error");
+    }
+  }
 
   template <typename T> T get() const { return std::get<T>(data); }
 

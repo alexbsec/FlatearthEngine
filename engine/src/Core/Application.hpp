@@ -2,6 +2,7 @@
 #define _FLATEARTH_ENGINE_APPLICATION_HPP
 
 #include "Core/Event.hpp"
+#include "Core/Input.hpp"
 #include "Definitions.hpp"
 #include "Platform/Platform.hpp"
 #include "Logger.hpp"
@@ -59,6 +60,7 @@ private:
   std::unique_ptr<logger::Logger> _logger;
   std::unique_ptr<platform::Platform> _platform;
   core::events::EventManager &_eventManager;
+  core::input::InputManager &_inputManager;
 };
 
 } // namespace application
