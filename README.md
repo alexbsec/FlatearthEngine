@@ -8,7 +8,7 @@ of use for developers focusing on 2D games.
 
 ## Platform Support 
 
-The engine is going to be primarily supported for Linux, but ultimately it will
+The engine is going to be primarily supported by Linux, but ultimately it will
 support both Windows and Linux operating systems.
 
 ## Tech Stack
