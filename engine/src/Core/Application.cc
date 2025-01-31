@@ -9,20 +9,23 @@ struct ApplicationState App::_appState = {};
 
 bool App::_initialized = FeFalse;
 
-App& App::GetInstance() {
+App &App::GetInstance() {
   static App instance(_appState.gameInstance);
   return instance;
 }
 
-void App::SetGameInstance(struct gametypes::game* gameInstance) {
+void App::SetGameInstance(struct gametypes::game *gameInstance) {
   _appState.gameInstance = gameInstance;
 }
 
 App::~App() {
   FINFO("App::~App(): shutting down application...");
-  _eventManager.UnregisterEvent(events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT, 0, OnEventCallback);
-  _eventManager.UnregisterEvent(events::SystemEventCode::EVENT_CODE_KEY_PRESSED, 0, OnKeyCallback);
-  _eventManager.UnregisterEvent(events::SystemEventCode::EVENT_CODE_KEY_RELEASED, 0, OnKeyCallback);
+  _eventManager.UnregisterEvent(
+      events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT, 0, OnEventCallback);
+  _eventManager.UnregisterEvent(events::SystemEventCode::EVENT_CODE_KEY_PRESSED,
+                                0, OnKeyCallback);
+  _eventManager.UnregisterEvent(
+      events::SystemEventCode::EVENT_CODE_KEY_RELEASED, 0, OnKeyCallback);
   _initialized = FeFalse;
 }
 
@@ -32,19 +35,24 @@ bool App::Init() {
     return FeFalse;
   }
 
-  OnEventCallback = [this](events::SystemEventCode code, void* sender, void* listener, const events::EventContext& context) {
+  OnEventCallback = [this](events::SystemEventCode code, void *sender,
+                           void *listener,
+                           const events::EventContext &context) {
     return OnEvent(code, sender, listener, context);
   };
 
-  OnKeyCallback = [this](events::SystemEventCode code, void* sender, void* listener, const events::EventContext& context) {
+  OnKeyCallback = [this](events::SystemEventCode code, void *sender,
+                         void *listener, const events::EventContext &context) {
     return OnKey(code, sender, listener, context);
   };
 
   // Register the events
-  _eventManager.RegisterEvent(events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT, 0, OnEventCallback);
-  _eventManager.RegisterEvent(events::SystemEventCode::EVENT_CODE_KEY_PRESSED, 0, OnKeyCallback);
-  _eventManager.RegisterEvent(events::SystemEventCode::EVENT_CODE_KEY_RELEASED, 0, OnKeyCallback);
-
+  _eventManager.RegisterEvent(
+      events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT, 0, OnEventCallback);
+  _eventManager.RegisterEvent(events::SystemEventCode::EVENT_CODE_KEY_PRESSED,
+                              0, OnKeyCallback);
+  _eventManager.RegisterEvent(events::SystemEventCode::EVENT_CODE_KEY_RELEASED,
+                              0, OnKeyCallback);
 
   // Set the application as running and not suspended
   _appState.isRunning = FeTrue;
@@ -78,7 +86,7 @@ bool App::Run() {
   if (!_initialized) {
     FWARN("App::Run(): run method was called, but app was not initialized.");
     return FeFalse;
-  }   
+  }
 
   while (_appState.isRunning) {
 
@@ -122,9 +130,9 @@ void App::ShutDown() {
 
 // Private members
 
-App::App(struct gametypes::game* gameInstance)
-  : _eventManager(core::events::EventManager::GetInstance())
-  , _inputManager(core::input::InputManager::GetInstance()) {
+App::App(struct gametypes::game *gameInstance)
+    : _eventManager(core::events::EventManager::GetInstance()),
+      _inputManager(core::input::InputManager::GetInstance()) {
 
   _appState.gameInstance = gameInstance;
 
@@ -134,10 +142,12 @@ App::App(struct gametypes::game* gameInstance)
   FINFO("App::App(): application was correctly initialized");
 }
 
-bool App::OnEvent(events::SystemEventCode code, void* sender, void* listener, const events::EventContext& context) {
+bool App::OnEvent(events::SystemEventCode code, void *sender, void *listener,
+                  const events::EventContext &context) {
   switch (code) {
   case events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT:
-    FINFO("AppOnEvent(): EVENT_CODE_APPLICATION_QUIT received, shutting down...");
+    FINFO(
+        "AppOnEvent(): EVENT_CODE_APPLICATION_QUIT received, shutting down...");
     _appState.isRunning = FeFalse;
     return FeTrue;
   default:
@@ -147,29 +157,27 @@ bool App::OnEvent(events::SystemEventCode code, void* sender, void* listener, co
   return FeFalse;
 }
 
-bool App::OnKey(events::SystemEventCode code, void* sender, void* listener, const events::EventContext& context) {
+bool App::OnKey(events::SystemEventCode code, void *sender, void *listener,
+                const events::EventContext &context) {
   if (code == events::SystemEventCode::EVENT_CODE_KEY_PRESSED) {
     std::array<ushort, 8> keyContext = context.get<std::array<ushort, 8>>();
     input::Keys keyCode = static_cast<input::Keys>(keyContext[0]);
     if (keyCode == input::Keys::KEY_ESCAPE) {
       events::EventContext data = {};
-      _eventManager.FireEvent(events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT, 0, data);
+      _eventManager.FireEvent(
+          events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT, 0, data);
       return FeTrue;
-    }
-    else if (keyCode == input::Keys::KEY_A) {
+    } else if (keyCode == input::Keys::KEY_A) {
       FDEBUG("Explicit - A pressed");
-    }
-    else {
+    } else {
       FDEBUG("'%c' key pressed in window.", static_cast<ushort>(keyCode));
     }
-  }
-  else if (code == events::SystemEventCode::EVENT_CODE_KEY_RELEASED) {
+  } else if (code == events::SystemEventCode::EVENT_CODE_KEY_RELEASED) {
     std::array<ushort, 8> keyContext = context.get<std::array<ushort, 8>>();
     input::Keys keyCode = static_cast<input::Keys>(keyContext[0]);
     if (keyCode == input::Keys::KEY_B) {
       FDEBUG("Explicit - B key released");
-    }
-    else {
+    } else {
       FDEBUG("'%c' key released in window.", static_cast<ushort>(keyCode));
     }
   }

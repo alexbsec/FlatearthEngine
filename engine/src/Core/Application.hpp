@@ -4,8 +4,8 @@
 #include "Core/Event.hpp"
 #include "Core/Input.hpp"
 #include "Definitions.hpp"
-#include "Platform/Platform.hpp"
 #include "Logger.hpp"
+#include "Platform/Platform.hpp"
 
 namespace flatearth {
 
@@ -13,7 +13,7 @@ namespace gametypes {
 
 struct game;
 
-} // gametypes
+} // namespace gametypes
 
 namespace core {
 namespace application {
@@ -35,7 +35,6 @@ struct AppConfig {
   string name;
 };
 
-
 struct ApplicationState {
   gametypes::game *gameInstance;
   bool isRunning;
@@ -46,11 +45,10 @@ struct ApplicationState {
   float64 lastTime;
 };
 
-
 class App {
 public:
-  FEAPI static App& GetInstance();
-  FEAPI static void SetGameInstance(struct gametypes::game* gameInstance);
+  FEAPI static App &GetInstance();
+  FEAPI static void SetGameInstance(struct gametypes::game *gameInstance);
   FEAPI ~App();
 
   FEAPI bool Init();
@@ -60,9 +58,11 @@ public:
 
 private:
   // Private constructor
-  App(struct gametypes::game* gameInstance);
-  bool OnEvent(events::SystemEventCode code, void* sender, void* listener, const events::EventContext& context);
-  bool OnKey(events::SystemEventCode code, void* sender, void* listener, const events::EventContext& context);
+  App(struct gametypes::game *gameInstance);
+  bool OnEvent(events::SystemEventCode code, void *sender, void *listener,
+               const events::EventContext &context);
+  bool OnKey(events::SystemEventCode code, void *sender, void *listener,
+             const events::EventContext &context);
 
   // Private variables
   events::EventCallback OnEventCallback;
@@ -72,7 +72,7 @@ private:
   std::unique_ptr<logger::Logger> _logger;
   std::unique_ptr<platform::Platform> _platform;
   core::events::EventManager &_eventManager;
-  core::input::InputManager& _inputManager;
+  core::input::InputManager &_inputManager;
 };
 
 } // namespace application
