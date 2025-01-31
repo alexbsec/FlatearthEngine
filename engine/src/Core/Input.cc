@@ -84,7 +84,7 @@ void InputManager::ProcessMouseMove(sshort x, sshort y) {
   if (_state.mouseCurrent.x == x && _state.mouseCurrent.y == y)
     return;
 
-  FDEBUG("Mouse position: (%d, %d)", x, y);
+  // FDEBUG("Mouse position: (%d, %d)", x, y);
 
   // Update internal state
   _state.mouseCurrent.x = x;

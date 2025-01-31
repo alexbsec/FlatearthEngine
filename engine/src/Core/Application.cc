@@ -7,20 +7,26 @@ namespace application {
 
 static bool initialized = FeFalse;
 
-App::App(struct gametypes::game *gameInstance)
- : _eventManager(core::events::EventManager::GetInstance())
- , _inputManager(core::input::InputManager::GetInstance()) {
+// Event handlers forward definition
+bool AppOnEvent(events::SystemEventCode code, void* sender, void* listener, const events::EventContext& context);
+bool AppOnKey(events::SystemEventCode code, void* sender, void* listener, const events::EventContext& context);
 
+struct ApplicationState App::_appState = {};
+
+App& App::GetInstance() {
+  static App instance(_appState.gameInstance);
+  return instance;
+}
+
+void App::SetGameInstance(struct gametypes::game* gameInstance) {
   _appState.gameInstance = gameInstance;
-
-  // TODO: implement logger constructor
-  _logger = std::make_unique<logger::Logger>();
-
-  FINFO("App::App(): application was correctly initialized");
 }
 
 App::~App() {
   FINFO("App::~App(): shutting down application...");
+  _eventManager.UnregisterEvent(events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT, 0, AppOnEvent);
+  _eventManager.UnregisterEvent(events::SystemEventCode::EVENT_CODE_KEY_PRESSED, 0, AppOnKey);
+  _eventManager.UnregisterEvent(events::SystemEventCode::EVENT_CODE_KEY_RELEASED, 0, AppOnKey);
   initialized = FeFalse;
 }
 
@@ -29,6 +35,12 @@ bool App::Init() {
     FFATAL("App::Init(): app initializer was called more than once!");
     return FeFalse;
   }
+
+  // Register the events
+  _eventManager.RegisterEvent(events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT, 0, AppOnEvent);
+  _eventManager.RegisterEvent(events::SystemEventCode::EVENT_CODE_KEY_PRESSED, 0, AppOnKey);
+  _eventManager.RegisterEvent(events::SystemEventCode::EVENT_CODE_KEY_RELEASED, 0, AppOnKey);
+
 
   // Set the application as running and not suspended
   _appState.isRunning = FeTrue;
@@ -95,6 +107,72 @@ bool App::Run() {
   _appState.isRunning = FeFalse;
 
   return FeTrue;
+}
+
+void App::ShutDown() {
+  if (!initialized)
+    return;
+
+  _appState.isRunning = FeFalse;
+}
+
+// Private members
+
+App::App(struct gametypes::game* gameInstance)
+  : _eventManager(core::events::EventManager::GetInstance())
+  , _inputManager(core::input::InputManager::GetInstance()) {
+
+  _appState.gameInstance = gameInstance;
+
+  // TODO: implement logger constructor
+  _logger = std::make_unique<logger::Logger>();
+
+  FINFO("App::App(): application was correctly initialized");
+}
+
+
+// Event handlers implementation
+bool AppOnEvent(events::SystemEventCode code, void* sender, void* listener, const events::EventContext& context) {
+  switch (code) {
+  case events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT:
+    FINFO("AppOnEvent(): EVENT_CODE_APPLICATION_QUIT received, shutting down...");
+    App::GetInstance().ShutDown();
+    return FeTrue;
+  default:
+    break;
+  }
+
+  return FeFalse;
+}
+
+bool AppOnKey(events::SystemEventCode code, void* sender, void* listener, const events::EventContext& context) {
+  if (code == events::SystemEventCode::EVENT_CODE_KEY_PRESSED) {
+    std::array<ushort, 8> keyContext = context.get<std::array<ushort, 8>>();
+    input::Keys keyCode = static_cast<input::Keys>(keyContext[0]);
+    if (keyCode == input::Keys::KEY_ESCAPE) {
+      events::EventContext data = {};
+      events::EventManager::GetInstance().FireEvent(events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT, 0, data);
+      return FeTrue;
+    }
+    else if (keyCode == input::Keys::KEY_A) {
+      FDEBUG("Explicit - A pressed");
+    }
+    else {
+      FDEBUG("'%c' key pressed in window.", static_cast<ushort>(keyCode));
+    }
+  }
+  else if (code == events::SystemEventCode::EVENT_CODE_KEY_RELEASED) {
+    std::array<ushort, 8> keyContext = context.get<std::array<ushort, 8>>();
+    input::Keys keyCode = static_cast<input::Keys>(keyContext[0]);
+    if (keyCode == input::Keys::KEY_B) {
+      FDEBUG("Explicit - B key released");
+    }
+    else {
+      FDEBUG("'%c' key released in window.", static_cast<ushort>(keyCode));
+    }
+  }
+
+  return FeFalse;
 }
 
 } // namespace application

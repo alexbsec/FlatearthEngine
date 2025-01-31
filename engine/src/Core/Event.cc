@@ -55,7 +55,7 @@ bool EventManager::RegisterEvent(SystemEventCode code, void *listener,
 
   // If at this point no duplicate was found, proceed with registration
   RegisteredEvent e;
-  e.listener = e.listener;
+  e.listener = listener;
   e.callback = callback;
   _state.registered[ccode].events->Push(e);
 
@@ -72,7 +72,7 @@ bool EventManager::UnregisterEvent(SystemEventCode code, void *listener,
 
   uint64 registeredCount = _state.registered[ccode].events->GetLength();
   for (uint64 i = 0; i < registeredCount; i++) {
-    RegisteredEvent e = (*_state.registered[ccode].events)[i];
+    RegisteredEvent& e = (*_state.registered[ccode].events)[i];
     if (e.listener == listener &&
         e.callback.target<void>() == callback.target<void>()) {
       _state.registered[ccode].events->PopAt(i);
@@ -85,16 +85,17 @@ bool EventManager::UnregisterEvent(SystemEventCode code, void *listener,
 }
 
 bool EventManager::FireEvent(SystemEventCode code, void *sender,
-                             EventContext &context) {
+                             EventContext context) {
   ushort ccode = ToUnderlying(code);
   // If nothing is registered for the code, do nothing
   if (_state.registered[ccode].events == nullptr) {
     return FeFalse;
   }
 
+  
   uint64 registeredCount = _state.registered[ccode].events->GetLength();
   for (uint64 i = 0; i < registeredCount; i++) {
-    RegisteredEvent e = (*_state.registered[ccode].events)[i];
+    RegisteredEvent &e = (*_state.registered[ccode].events)[i];
     if (e.callback(code, sender, e.listener, context)) {
       // Early exit
       return FeTrue;

@@ -69,6 +69,11 @@ constexpr ushort ToUnderlying(SystemEventCode code) {
   return static_cast<ulong>(code);
 }
 
+// ##################### USAGE ######################
+// EventContext context;
+// context.set(std::array<type, size>{});
+// context.set<std::array<type, size>>(index, value);
+// ##################################################
 class EventContext {
 public:
   using VariantType = std::variant<
@@ -169,7 +174,12 @@ public:
    * @returns True if the event was handled by any listener, false otherwise.
    */
   FEAPI bool FireEvent(SystemEventCode code, void *sender,
-                       EventContext &context);
+                       EventContext context);
+
+  uint64 CountEvents(SystemEventCode code) const {
+    ushort ccode = ToUnderlying(code);
+    return (*_state.registered[ccode].events).GetLength();
+  }
 
 private:
   EventManager();
