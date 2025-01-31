@@ -1,13 +1,13 @@
 #include "Platform.hpp"
 
 #if FEPLATFORM_WINDOWS
-#include "Core/Logger.hpp"
 #include "Core/Input.hpp"
+#include "Core/Logger.hpp"
 
+#include <cstring>
 #include <stdexcept>
 #include <windows.h>
 #include <windowsx.h>
-#include <cstring>
 
 struct InternalState {
   HINSTANCE hInstance;
@@ -128,24 +128,22 @@ bool Platform::PollEvents() {
   return FeFalse;
 }
 
-void* Platform::PAllocateMemory(uint64 size, bool aligned) {
+void *Platform::PAllocateMemory(uint64 size, bool aligned) {
   // TODO: alignment
   return malloc(size);
 }
 
-void Platform::PFreeMemory(void* block, bool aligned) {
-  free(block);
-}
+void Platform::PFreeMemory(void *block, bool aligned) { free(block); }
 
-void* Platform::PZeroMemory(void* block, uint64 size) {
+void *Platform::PZeroMemory(void *block, uint64 size) {
   return memset(block, 0, size);
 }
 
-void* Platform::PCopyMemory(void* dest, const void* source, uint64 size) {
+void *Platform::PCopyMemory(void *dest, const void *source, uint64 size) {
   return memcpy(dest, source, size);
 }
 
-void* Platform::PSetMemory(void* dest, sint32 value, uint64 size) {
+void *Platform::PSetMemory(void *dest, sint32 value, uint64 size) {
   return memset(dest, value, size);
 }
 
@@ -190,8 +188,8 @@ LRESULT CALLBACK win32ProcessMessage(HWND hwnd, uint32 msg, WPARAM wParam,
     // Fires close event right away
     flatearth::core::events::EventContext emptyCtx{};
     flatearth::core::events::EventManager::GetInstance().FireEvent(
-      flatearth::core::events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT, 0, emptyCtx
-    );
+        flatearth::core::events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT,
+        0, emptyCtx);
     return 0;
   }
 
@@ -213,7 +211,8 @@ LRESULT CALLBACK win32ProcessMessage(HWND hwnd, uint32 msg, WPARAM wParam,
   case WM_KEYUP:
   case WM_SYSKEYUP: {
     bool pressed = (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN);
-    flatearth::core::input::Keys key = static_cast<flatearth::core::input::Keys>((ushort)wParam);
+    flatearth::core::input::Keys key =
+        static_cast<flatearth::core::input::Keys>((ushort)wParam);
     flatearth::core::input::InputManager::ProcessKey(key, pressed);
   } break;
 
@@ -237,8 +236,10 @@ LRESULT CALLBACK win32ProcessMessage(HWND hwnd, uint32 msg, WPARAM wParam,
   case WM_LBUTTONUP:
   case WM_MBUTTONUP:
   case WM_RBUTTONUP: {
-    bool pressed = (msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN);
-    flatearth::core::input::Buttons button = flatearth::core::input::Buttons::BUTTON_MAX_BUTTONS;
+    bool pressed = (msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN ||
+                    msg == WM_RBUTTONDOWN);
+    flatearth::core::input::Buttons button =
+        flatearth::core::input::Buttons::BUTTON_MAX_BUTTONS;
     switch (msg) {
     case WM_LBUTTONDOWN:
     case WM_LBUTTONUP:
