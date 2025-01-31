@@ -27,7 +27,8 @@ int main(void) {
   }
 
   // Initialization
-  flatearth::core::application::App gameApp(&gameInst);
+  flatearth::core::application::App::SetGameInstance(&gameInst);
+  flatearth::core::application::App& gameApp = flatearth::core::application::App::GetInstance();
   if (!gameApp.Init()) {
     FINFO("main(): the game's function failed to create");
     return 1;

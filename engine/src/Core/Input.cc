@@ -40,18 +40,24 @@ void InputManager::ProcessKey(Keys key, bool pressed) {
     return;
   }
 
+  string p = pressed == FeTrue ? "pressed" : "released";
+  FDEBUG("InputManager::ProcessKey(): received a signal about a key %s", p.c_str());
+
   // Only handle this if the states actually changed
   if (_state.keyboardCurrent.keys[key] == pressed)
     return;
 
+  FDEBUG("InputManager::ProcessKey(): creating context...")
   _state.keyboardCurrent.keys[key] = pressed;
   events::EventContext context;
   context.set(std::array<ushort, 8>{});
   context.set<std::array<ushort, 8>>(0, static_cast<ushort>(key));
+  FDEBUG("InputManager::ProcessKey(): context created ok. Firing event to EventManager");
   events::SystemEventCode code =
       pressed ? events::SystemEventCode::EVENT_CODE_KEY_PRESSED
               : events::SystemEventCode::EVENT_CODE_KEY_RELEASED;
   EventManagerRef().FireEvent(code, nullptr, context);
+  FDEBUG("InputManager::ProcessKey(): event fired successfully!");
 }
 
 void InputManager::ProcessButton(Buttons button, bool pressed) {
@@ -84,7 +90,7 @@ void InputManager::ProcessMouseMove(sshort x, sshort y) {
   if (_state.mouseCurrent.x == x && _state.mouseCurrent.y == y)
     return;
 
-  FDEBUG("Mouse position: (%d, %d)", x, y);
+  // FDEBUG("Mouse position: (%d, %d)", x, y);
 
   // Update internal state
   _state.mouseCurrent.x = x;

@@ -174,7 +174,12 @@ public:
    * @returns True if the event was handled by any listener, false otherwise.
    */
   FEAPI bool FireEvent(SystemEventCode code, void *sender,
-                       EventContext &context);
+                       EventContext context);
+
+  uint64 CountEvents(SystemEventCode code) const {
+    ushort ccode = ToUnderlying(code);
+    return (*_state.registered[ccode].events).GetLength();
+  }
 
 private:
   EventManager();

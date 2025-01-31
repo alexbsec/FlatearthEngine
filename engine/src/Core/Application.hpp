@@ -49,14 +49,21 @@ struct ApplicationState {
 
 class App {
 public:
-  FEAPI App(struct gametypes::game *gameInstance);
+  FEAPI static App& GetInstance();
+  FEAPI static void SetGameInstance(struct gametypes::game* gameInstance);
   FEAPI ~App();
 
   FEAPI bool Init();
   FEAPI bool Run();
 
+  void ShutDown();
+
 private:
-  ApplicationState _appState;
+  // Private constructor
+  App(struct gametypes::game* gameInstance);
+
+  // Private variables
+  static ApplicationState _appState;
   std::unique_ptr<logger::Logger> _logger;
   std::unique_ptr<platform::Platform> _platform;
   core::events::EventManager &_eventManager;
