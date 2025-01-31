@@ -97,34 +97,50 @@ template <typename T> void DArray<T>::SetStride(uint64 stride) {
 }
 
 template <typename T> void DArray<T>::Resize() {
-  // Creates a temporary array with the new capacity
-  std::unique_ptr<T[], decltype(&CustomDeleter)> temp(
-      reinterpret_cast<T *>(core::memory::MemoryManager::Allocate(
-          DARRAY_RESIZE_FACTOR * _capacity * _stride,
-          core::memory::MEMORY_TAG_DARRAY)),
-      &CustomDeleter);
+  // Calculate new capacity
+  uint64 newCapacity = _capacity * DARRAY_RESIZE_FACTOR;
 
-  // Copy existing data into the new array
-  core::memory::MemoryManager::CopyMemory(temp.get(), _array.get(),
-                                          _length * _stride);
+  // Determine the total new size to be allocated including header
+  uint64 headerSize = DARRAY_FIELD_LENGTH * sizeof(uint64);
+  uint64 newArraySize = newCapacity * _stride;
+  uint64 totalNewSize = headerSize + newArraySize;
+
+  // Allocate new memory
+  T* newMemory = reinterpret_cast<T*>(core::memory::MemoryManager::Allocate(totalNewSize, core::memory::MEMORY_TAG_DARRAY));
+  core::memory::MemoryManager::SetMemory(newMemory, 0, totalNewSize);
+
+  // Move each existing element from old array to new one
+  for (uint64 i = 0; i < _length; i++) {
+    // Calculate pointers for the current element to old and new arrays
+    T* oldElem = reinterpret_cast<T*>(reinterpret_cast<char*>(_array.get()) + i * _stride);
+    T* newElem = reinterpret_cast<T*>(reinterpret_cast<char*>(newMemory) + i * _stride);
+
+    // Use placement new to move-construct the element into the new memory
+    new (newElem) T(std::move(*oldElem));
+
+    // Explicitly destruct old element
+    oldElem->~T();
+  }
+
+  // Once we're done, we need to free the old memory
+  uint64 totalOldSize = headerSize + _capacity * _stride;
+  core::memory::MemoryManager::Free(_array.get(), totalOldSize, core::memory::MEMORY_TAG_DARRAY);
 
   // Update internal state
-  _capacity *= DARRAY_RESIZE_FACTOR;
-  _array = std::move(temp);
+  _capacity = newCapacity;
+  _array.reset(newMemory);
 }
 
-template <typename T> void DArray<T>::Push(const T &element) {
+template <typename T> void DArray<T>::Push(const T& element) {
   if (_length >= _capacity) {
     Resize();
   }
 
-  // Calculate the destination address using pointer arithmetics
-  T *dest = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
-                                  (_length * _stride));
+  // Calculate the destination address of the last element
+  T* dest = reinterpret_cast<T*>(reinterpret_cast<char*>(_array.get()) + _length * _stride);
 
-  // Copy the element into the calculated memory location and update
-  // length
-  core::memory::MemoryManager::CopyMemory(dest, &element, _stride);
+  // Construct the new element in place
+  new (dest) T(element);
   _length++;
 }
 
@@ -152,49 +168,47 @@ template <typename T> void DArray<T>::InsertAt(const T &element, uint64 index) {
     Resize();
   }
 
-  // Shift elements to the right to make room for the new element
+  // Shift elements to the right by moving them. Since the destination slots
+  // (except for the very end) already contain objects, use assignment.
+  // Start from the end and go backwards.
   for (uint64 i = _length; i > index; i--) {
     T *dest = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
                                     (i * _stride));
     T *source = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
                                       ((i - 1) * _stride));
-
-    // Move each element at the specified index
-    core::memory::MemoryManager::CopyMemory(dest, source, _stride);
+    *dest = std::move(*source);
   }
 
-  // Get the insert location
-  T *insertLoc = reinterpret_cast<T *>(
-      reinterpret_cast<char *>(_array.get()) + (index * _stride));
-
-  // Insert the new element at the insert location
-  core::memory::MemoryManager::CopyMemory(insertLoc, &element, _stride);
+  // Now, if index == _length then the slot is uninitialized; otherwise, it is
+  // already constructed. In the latter case, we can assign to it.
+  T* insertLoc = reinterpret_cast<T*>(reinterpret_cast<char*>(_array.get()) + (index * _stride));
+  if (index < _length) {
+    // Use copy assignment.
+    *insertLoc = element; 
+  }
+  else {
+    // Placement new if inserting at the end.
+    new (insertLoc) T(element);
+  }
   _length++;
 }
 
 template <typename T> void DArray<T>::PopAt(uint64 index) {
   if (index >= _length) {
-    FERROR("DArray<T>::InsertAt(): attempt to pop at invalid index");
+    FERROR("DArray<T>::PopAt(): attempt to pop at invalid index");
     return;
   }
 
-  // Get a pointer to the element being removed
-  T *toRemove = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
-                                      (index * _stride));
-
-  // Call the destructor explicitly to clean up the resource
-  toRemove->~T();
-
-  // Shift elements to the left to fill the gap
+  // Shift elements to the left.
   for (uint64 i = index; i < _length - 1; i++) {
-    T *dest = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
-                                    (i * _stride));
-    T *source = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
-                                      ((i + 1) * _stride));
-
-    core::memory::MemoryManager::CopyMemory(dest, source, _stride);
+    T* dest = reinterpret_cast<T*>(reinterpret_cast<char*>(_array.get()) + (i * _stride));
+    T* source = reinterpret_cast<T*>(reinterpret_cast<char*>(_array.get()) + ((i + 1) * _stride));
+    *dest = std::move(*source);
   }
 
+  // Now the last element is a duplicate; call its destructor.
+  T* last = reinterpret_cast<T*>(reinterpret_cast<char*>(_array.get()) + ((_length - 1) * _stride));
+  last->~T();
   _length--;
 }
 
