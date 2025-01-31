@@ -46,7 +46,8 @@ void InputManager::ProcessKey(Keys key, bool pressed) {
 
   _state.keyboardCurrent.keys[key] = pressed;
   events::EventContext context;
-  context.set<std::array<ushort, 8>>(0, key);
+  context.set(std::array<ushort, 8>{});
+  context.set<std::array<ushort, 8>>(0, static_cast<ushort>(key));
   events::SystemEventCode code =
       pressed ? events::SystemEventCode::EVENT_CODE_KEY_PRESSED
               : events::SystemEventCode::EVENT_CODE_KEY_RELEASED;
@@ -65,7 +66,8 @@ void InputManager::ProcessButton(Buttons button, bool pressed) {
 
   _state.mouseCurrent.buttons[button] = pressed;
   events::EventContext context;
-  context.set<std::array<ushort, 8>>(0, button);
+  context.set(std::array<ushort, 8>{});
+  context.set<std::array<ushort, 8>>(0, static_cast<ushort>(button));
   events::SystemEventCode code =
       pressed ? events::SystemEventCode::EVENT_CODE_BUTTON_PRESSED
               : events::SystemEventCode::EVENT_CODE_BUTTON_RELEASED;
@@ -82,12 +84,15 @@ void InputManager::ProcessMouseMove(sshort x, sshort y) {
   if (_state.mouseCurrent.x == x && _state.mouseCurrent.y == y)
     return;
 
+  FDEBUG("Mouse position: (%d, %d)", x, y);
+
   // Update internal state
   _state.mouseCurrent.x = x;
   _state.mouseCurrent.y = y;
 
   // Fire the event
   events::EventContext context;
+  context.set(std::array<ushort, 8>{});
   context.set<std::array<ushort, 8>>(0, x);
   context.set<std::array<ushort, 8>>(1, y);
   events::SystemEventCode code =
@@ -102,6 +107,7 @@ void InputManager::ProcessMouseWheel(schar zDelta) {
     return;
   }
   events::EventContext context;
+  context.set(std::array<uchar, 16>{});
   context.set<std::array<uchar, 16>>(0, zDelta);
   events::SystemEventCode code =
       events::SystemEventCode::EVENT_CODE_MOUSE_WHEEL;

@@ -2,6 +2,7 @@
 
 #if FEPLATFORM_WINDOWS
 #include "Core/Logger.hpp"
+#include "Core/Input.hpp"
 
 #include <stdexcept>
 #include <windows.h>
@@ -206,22 +207,23 @@ LRESULT CALLBACK win32ProcessMessage(HWND hwnd, uint32 msg, WPARAM wParam,
   case WM_SYSKEYDOWN:
   case WM_KEYUP:
   case WM_SYSKEYUP: {
-    // b8 pressed = (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN);
-    //  TODO: input processing
+    bool pressed = (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN);
+    flatearth::core::input::Keys key = static_cast<flatearth::core::input::Keys>((ushort)wParam);
+    flatearth::core::input::InputManager::ProcessKey(key, pressed);
   } break;
 
   case WM_MOUSEMOVE: {
-    // i32 x_pos = GET_X_LPARAM(l_param);
-    // i32 y_pos = GET_Y_LPARAM(l_param);
-    //  TODO: input processing
+    sint32 xPos = GET_X_LPARAM(lParam);
+    sint32 yPos = GET_Y_LPARAM(lParam);
+    flatearth::core::input::InputManager::ProcessMouseMove(xPos, yPos);
   } break;
 
   case WM_MOUSEHWHEEL: {
-    // i32 z_delta = GET_WHEEL_DELTA_WPARAM(w_param);
-    // if (z_delta != 0) {
-    //   // Flatten the input to OS independent
-    //   z_delta = (z_delta < 0) ? -1 : 1;
-    //   // TODO: input processing
+    sint32 zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+    if (zDelta != 0) {
+      zDelta = (zDelta < 0) ? -1 : 1;
+      flatearth::core::input::InputManager::ProcessMouseWheel(zDelta);
+    }
   } break;
 
   case WM_LBUTTONDOWN:
@@ -230,9 +232,26 @@ LRESULT CALLBACK win32ProcessMessage(HWND hwnd, uint32 msg, WPARAM wParam,
   case WM_LBUTTONUP:
   case WM_MBUTTONUP:
   case WM_RBUTTONUP: {
-    // b8 pressed = (msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg ==
-    // WM_RBUTTONDOWN);
-    //  TODO: input processing
+    bool pressed = (msg == WM_LBUTTONDOWN || msg == WM_MBUTTONDOWN || msg == WM_RBUTTONDOWN);
+    flatearth::core::input::Buttons button = flatearth::core::input::Buttons::BUTTON_MAX_BUTTONS;
+    switch (msg) {
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONUP:
+      button = flatearth::core::input::Buttons::BUTTON_LEFT;
+      break;
+    case WM_MBUTTONDOWN:
+    case WM_MBUTTONUP:
+      button = flatearth::core::input::Buttons::BUTTON_MIDDLE;
+      break;
+    case WM_RBUTTONDOWN:
+    case WM_RBUTTONUP:
+      button = flatearth::core::input::Buttons::BUTTON_RIGHT;
+      break;
+    }
+
+    if (button != flatearth::core::input::Buttons::BUTTON_MAX_BUTTONS) {
+      flatearth::core::input::InputManager::ProcessButton(button, pressed);
+    }
   } break;
   }
 

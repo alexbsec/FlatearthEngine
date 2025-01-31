@@ -12,7 +12,7 @@ enum Buttons { BUTTON_LEFT, BUTTON_RIGHT, BUTTON_MIDDLE, BUTTON_MAX_BUTTONS };
 
 #define DEFINE_KEY(name, code) KEY_##name = code
 
-enum Keys {
+enum Keys : ushort {
   DEFINE_KEY(BACKSPACE, 0x08),
   DEFINE_KEY(ENTER, 0x0D),
   DEFINE_KEY(TAB, 0x09),
