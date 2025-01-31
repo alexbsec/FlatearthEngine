@@ -69,6 +69,11 @@ constexpr ushort ToUnderlying(SystemEventCode code) {
   return static_cast<ulong>(code);
 }
 
+// ##################### USAGE ######################
+// EventContext context;
+// context.set(std::array<type, size>{});
+// context.set<std::array<type, size>>(index, value);
+// ##################################################
 class EventContext {
 public:
   using VariantType = std::variant<
