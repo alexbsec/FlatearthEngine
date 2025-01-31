@@ -2,7 +2,6 @@
 #define _FLATEARTH_ENGINE_DYNAMIC_ARRAY_HPP
 
 #include "Definitions.hpp"
-
 #include "Core/FeMemory.hpp"
 #include "Core/Logger.hpp"
 #include <cstring>
