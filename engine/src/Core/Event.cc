@@ -92,28 +92,16 @@ bool EventManager::FireEvent(SystemEventCode code, void *sender,
     return FeFalse;
   }
 
-  FDEBUG("EventManager::FireEvent(): got a signal to fire event");
   
   uint64 registeredCount = _state.registered[ccode].events->GetLength();
-  FDEBUG("EventManager::FireEvent(): number of registered events is %d", registeredCount);
   for (uint64 i = 0; i < registeredCount; i++) {
     RegisteredEvent &e = (*_state.registered[ccode].events)[i];
-    FDEBUG("EventManager::FireEvent(): looking for %d-th event", i);
-    FDEBUG("Address of callback: %p", &e.callback);
-    if (e.callback.target<bool(*)(SystemEventCode, void*, void*, const events::EventContext&)>()) {
-      FDEBUG("EventManager::FireEvent(): callback is targeting a valid function.");
-    }
-    else {
-      FERROR("EventManager::FireEvent(): callback is not targeting a valid function.");
-    }
     if (e.callback(code, sender, e.listener, context)) {
-      FDEBUG("EventManager::FireEvent(): found an event that accepted the callback");
       // Early exit
       return FeTrue;
     }
   }
 
-  FDEBUG("EventManager::FireEvent(): no event found, returning FeFalse");
   // Nothing found
   return FeFalse;
 }

@@ -186,9 +186,14 @@ LRESULT CALLBACK win32ProcessMessage(HWND hwnd, uint32 msg, WPARAM wParam,
     // flicker
     return 1;
 
-  case WM_CLOSE:
-    // TODO: fire event to quit application
+  case WM_CLOSE: {
+    // Fires close event right away
+    flatearth::core::events::EventContext emptyCtx{};
+    flatearth::core::events::EventManager::GetInstance().FireEvent(
+      flatearth::core::events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT, 0, emptyCtx
+    );
     return 0;
+  }
 
   case WM_DESTROY:
     PostQuitMessage(0);
@@ -209,9 +214,7 @@ LRESULT CALLBACK win32ProcessMessage(HWND hwnd, uint32 msg, WPARAM wParam,
   case WM_SYSKEYUP: {
     bool pressed = (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN);
     flatearth::core::input::Keys key = static_cast<flatearth::core::input::Keys>((ushort)wParam);
-    FDEBUG("Platform: sending message to input manager about key pressed");
     flatearth::core::input::InputManager::ProcessKey(key, pressed);
-    FDEBUG("Platform: message sent to input manager about key pressed");
   } break;
 
   case WM_MOUSEMOVE: {

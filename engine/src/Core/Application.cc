@@ -38,11 +38,8 @@ bool App::Init() {
 
   // Register the events
   _eventManager.RegisterEvent(events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT, 0, AppOnEvent);
-  FDEBUG("App::Init(): registered %d event for code EVENT_CODE_APPLICATION_QUIT!", _eventManager.CountEvents(events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT));
   _eventManager.RegisterEvent(events::SystemEventCode::EVENT_CODE_KEY_PRESSED, 0, AppOnKey);
   _eventManager.RegisterEvent(events::SystemEventCode::EVENT_CODE_KEY_RELEASED, 0, AppOnKey);
-  FDEBUG("App::Init(): registered %d event for code EVENT_CODE_KEY_PRESSED!", _eventManager.CountEvents(events::SystemEventCode::EVENT_CODE_KEY_PRESSED));
-  FDEBUG("App::Init(): registered %d event for code EVENT_CODE_KEY_RELEASED!", _eventManager.CountEvents(events::SystemEventCode::EVENT_CODE_KEY_RELEASED));
 
 
   // Set the application as running and not suspended
@@ -149,7 +146,6 @@ bool AppOnEvent(events::SystemEventCode code, void* sender, void* listener, cons
 }
 
 bool AppOnKey(events::SystemEventCode code, void* sender, void* listener, const events::EventContext& context) {
-  FDEBUG("AppOnKey(): got signal to process OnKey events");
   if (code == events::SystemEventCode::EVENT_CODE_KEY_PRESSED) {
     std::array<ushort, 8> keyContext = context.get<std::array<ushort, 8>>();
     input::Keys keyCode = static_cast<input::Keys>(keyContext[0]);
