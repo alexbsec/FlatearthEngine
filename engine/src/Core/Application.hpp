@@ -61,13 +61,18 @@ public:
 private:
   // Private constructor
   App(struct gametypes::game* gameInstance);
+  bool OnEvent(events::SystemEventCode code, void* sender, void* listener, const events::EventContext& context);
+  bool OnKey(events::SystemEventCode code, void* sender, void* listener, const events::EventContext& context);
 
   // Private variables
+  events::EventCallback OnEventCallback;
+  events::EventCallback OnKeyCallback;
   static ApplicationState _appState;
+  static bool _initialized;
   std::unique_ptr<logger::Logger> _logger;
   std::unique_ptr<platform::Platform> _platform;
   core::events::EventManager &_eventManager;
-  core::input::InputManager &_inputManager;
+  core::input::InputManager& _inputManager;
 };
 
 } // namespace application
