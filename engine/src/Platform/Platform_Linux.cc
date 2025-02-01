@@ -199,6 +199,8 @@ bool Platform::PollEvents() {
                                                   moveEvent->event_y);
       break;
     }
+      
+    // TODO: mouse wheel detection
 
     case XCB_CONFIGURE_NOTIFY: {
       // Resizing
