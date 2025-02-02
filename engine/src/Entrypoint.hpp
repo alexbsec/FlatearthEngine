@@ -6,13 +6,13 @@
 #include "Core/Logger.hpp"
 #include "GameTypes.hpp"
 
-extern bool CreateGame(flatearth::gametypes::game *gameOut);
+extern bool CreateGame(flatearth::gametypes::Game *gameOut);
 
 int main(void) {
   flatearth::core::memory::MemoryManager &memoryManager =
       flatearth::core::memory::MemoryManager::GetInstance();
 
-  flatearth::gametypes::game gameInst;
+  flatearth::gametypes::Game gameInst;
 
   if (!CreateGame(&gameInst)) {
     FFATAL("main(): could not create game!");

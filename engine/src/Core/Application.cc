@@ -14,7 +14,7 @@ App &App::GetInstance() {
   return instance;
 }
 
-void App::SetGameInstance(struct gametypes::game *gameInstance) {
+void App::SetGameInstance(struct gametypes::Game *gameInstance) {
   _appState.gameInstance = gameInstance;
 }
 
@@ -132,7 +132,7 @@ void App::ShutDown() {
 
 // Private members
 
-App::App(struct gametypes::game *gameInstance)
+App::App(struct gametypes::Game *gameInstance)
     : _eventManager(core::events::EventManager::GetInstance()),
       _inputManager(core::input::InputManager::GetInstance()) {
 

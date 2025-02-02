@@ -13,10 +13,10 @@ struct GameState {
 
 class GameTest {
 public:
-  static bool GameInitialize(gametypes::game *gameInstance);
-  static bool GameUpdate(gametypes::game *gameInstance, float32 deltaTime);
-  static bool GameRender(gametypes::game *gameInstance, float32 deltaTime);
-  static void GameOnResize(gametypes::game *gameInstance, uint32 width,
+  static bool GameInitialize(gametypes::Game *gameInstance);
+  static bool GameUpdate(gametypes::Game *gameInstance, float32 deltaTime);
+  static bool GameRender(gametypes::Game *gameInstance, float32 deltaTime);
+  static void GameOnResize(gametypes::Game *gameInstance, uint32 width,
                            uint32 height);
 };
 

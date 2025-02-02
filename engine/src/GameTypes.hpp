@@ -8,27 +8,27 @@
 namespace flatearth {
 namespace gametypes {
 
-struct game {
+struct Game {
   // The application configuration
   core::application::AppConfig appConfig;
 
-  // Function pointer to game's initialize function
-  std::function<bool(struct game *gameInstance)> Initialize;
+  // Function pointer to Game's initialize function
+  std::function<bool(struct Game *gameInstance)> Initialize;
 
-  // Function pointer to game's update function
-  std::function<bool(struct game *gameInstance, float32 deltaTime)> Update;
+  // Function pointer to Game's update function
+  std::function<bool(struct Game *gameInstance, float32 deltaTime)> Update;
 
-  // Function pointer to game's render function
-  std::function<bool(struct game *gameInstance, float32 deltaTime)> Render;
+  // Function pointer to Game's render function
+  std::function<bool(struct Game *gameInstance, float32 deltaTime)> Render;
 
   // Function pointer to handle resize if applicable
-  std::function<void(struct game *gameInstance, uint32 width, uint32 height)>
+  std::function<void(struct Game *gameInstance, uint32 width, uint32 height)>
       OnResize;
 
-  // Game-specific game state. Created and managed by the game
+  // Game-specific Game state. Created and managed by the Game
   void *state;
 
-  game()
+  Game()
       : Initialize(nullptr), Update(nullptr), Render(nullptr),
         OnResize(nullptr) {}
 };

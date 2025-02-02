@@ -3,7 +3,7 @@
 #include <Core/FeMemory.hpp>
 #include <Entrypoint.hpp>
 
-bool CreateGame(flatearth::gametypes::game *gameOut) {
+bool CreateGame(flatearth::gametypes::Game *gameOut) {
   gameOut->appConfig.startPosX = 100;
   gameOut->appConfig.startPosY = 100;
   gameOut->appConfig.startWidth = 1280;

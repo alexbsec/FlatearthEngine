@@ -11,7 +11,7 @@ namespace flatearth {
 
 namespace gametypes {
 
-struct game;
+struct Game;
 
 } // namespace gametypes
 
@@ -36,7 +36,7 @@ struct AppConfig {
 };
 
 struct ApplicationState {
-  gametypes::game *gameInstance;
+  gametypes::Game *gameInstance;
   bool isRunning;
   bool isSuspended;
   platform::PlatformState platform;
@@ -48,7 +48,7 @@ struct ApplicationState {
 class App {
 public:
   FEAPI static App &GetInstance();
-  FEAPI static void SetGameInstance(struct gametypes::game *gameInstance);
+  FEAPI static void SetGameInstance(struct gametypes::Game *gameInstance);
   FEAPI ~App();
 
   FEAPI bool Init();
@@ -58,7 +58,7 @@ public:
 
 private:
   // Private constructor
-  App(struct gametypes::game *gameInstance);
+  App(struct gametypes::Game *gameInstance);
   bool OnEvent(events::SystemEventCode code, void *sender, void *listener,
                const events::EventContext &context);
   bool OnKey(events::SystemEventCode code, void *sender, void *listener,
