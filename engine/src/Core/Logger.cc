@@ -11,11 +11,11 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-constexpr size_t LOGGER_BUFFER_SIZE = 32000;
-
 namespace flatearth {
 namespace core {
 namespace logger {
+
+constexpr size_t LOGGER_BUFFER_SIZE = 32000;
 
 Logger::Logger() {
   // TODO: create constructor
@@ -46,11 +46,10 @@ FEAPI void LogOutput(LogLevel level, const char *message, ...) {
     platform::Platform::ConsoleError(sOut, level);
   } else {
     platform::Platform::ConsoleWrite(sOut, level);
-  } 
+  }
 }
 
 } // namespace logger
-} // namespace core
 
 namespace asserts {
 
@@ -64,5 +63,5 @@ FEAPI void ReportAssertionFailure(const string &expression,
 }
 
 } // namespace asserts
-
+} // namespace core
 } // namespace flatearth

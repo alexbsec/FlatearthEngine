@@ -9,7 +9,6 @@ namespace flatearth {
 namespace core {
 namespace memory {
 
-
 enum MemoryTag {
   MEMORY_TAG_UNKNOWN,
   MEMORY_TAG_ARRAY,
@@ -32,6 +31,17 @@ enum MemoryTag {
   MEMORY_TAG_MAX_TAGS,
 };
 
+template <typename T> auto make_unique_void(T *ptr) -> unique_void_ptr {
+  return unique_void_ptr(ptr, [](void const *data) {
+    T const *p = static_cast<T const *>(data);
+    delete p;
+  });
+}
+
+template <typename T> T *get_unique_void_ptr(const unique_void_ptr &ptr) {
+  return static_cast<T *>(ptr.get());
+}
+
 struct MemoryBlock {
   uint64 totalAllocated;
   std::array<uint64, MEMORY_TAG_MAX_TAGS> taggedAllocations;
@@ -52,6 +62,17 @@ private:
   static void CheckTag(MemoryTag tag, const string& from);
   
   static MemoryBlock _memoryBlock;
+};
+
+
+// Custom deleter structure
+template <typename T, uint64 Size, MemoryTag Tag>
+struct CustomDeleter {
+  void operator()(T* ptr) const {
+    if (ptr) {
+      MemoryManager::Free(ptr, Size * sizeof(T), Tag);  
+    }
+  };
 };
 
 }

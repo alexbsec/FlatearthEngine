@@ -27,9 +27,10 @@ Platform::Platform(const string &applicationName, sint32 x, sint32 y,
                    sint32 width, sint32 height)
     : _x_pos(x), _y_pos(y), _width(width), _height(height) {
   _state = new PlatformState();
-  _state->internalState = make_unique_void<InternalState>(new InternalState());
+  _state->internalState =
+      core::memory::make_unique_void<InternalState>(new InternalState());
   InternalState *inStatePtr =
-      get_unique_void_ptr<InternalState>(_state->internalState);
+      core::memory::get_unique_void_ptr<InternalState>(_state->internalState);
 
   inStatePtr->hInstance = GetModuleHandleA(0);
 
@@ -108,7 +109,7 @@ Platform::Platform(const string &applicationName, sint32 x, sint32 y,
 Platform::~Platform() {
   // Cold cast state
   InternalState *inStatePtr =
-      get_unique_void_ptr<InternalState>(_state->internalState);
+      core::memory::get_unique_void_ptr<InternalState>(_state->internalState);
 
   if (inStatePtr->hwnd) {
     DestroyWindow(inStatePtr->hwnd);

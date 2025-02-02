@@ -37,10 +37,11 @@ Platform::Platform(const string &applicationName, sint32 x, sint32 y,
 
   // Create internal state
   _state = new PlatformState();
-  _state->internalState = make_unique_void<InternalState>(new InternalState());
+  _state->internalState =
+      core::memory::make_unique_void<InternalState>(new InternalState());
 
   InternalState *inStatePtr =
-      get_unique_void_ptr<InternalState>(_state->internalState);
+      core::memory::get_unique_void_ptr<InternalState>(_state->internalState);
 
   // Connect to X server
   inStatePtr->display = XOpenDisplay(nullptr);
@@ -137,7 +138,7 @@ Platform::Platform(const string &applicationName, sint32 x, sint32 y,
 
 Platform::~Platform() {
   InternalState *inStatePtr =
-      get_unique_void_ptr<InternalState>(_state->internalState);
+      core::memory::get_unique_void_ptr<InternalState>(_state->internalState);
 
   XAutoRepeatOn(inStatePtr->display);
 
@@ -149,7 +150,7 @@ Platform::~Platform() {
 bool Platform::PollEvents() {
   // Cold-cast state
   InternalState *inStatePtr =
-      get_unique_void_ptr<InternalState>(_state->internalState);
+      core::memory::get_unique_void_ptr<InternalState>(_state->internalState);
 
   xcb_generic_event_t *event;
   xcb_client_message_event_t *cm;
@@ -199,8 +200,8 @@ bool Platform::PollEvents() {
                                                   moveEvent->event_y);
       break;
     }
-      
-    // TODO: mouse wheel detection
+
+      // TODO: mouse wheel detection
 
     case XCB_CONFIGURE_NOTIFY: {
       // Resizing
