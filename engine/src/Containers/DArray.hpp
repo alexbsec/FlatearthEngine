@@ -16,11 +16,11 @@ public:
   // Constants
   static constexpr uint64 DARRAY_DEFAULT_SIZE = 1;
   static constexpr uchar DARRAY_RESIZE_FACTOR = 2;
-  static constexpr uint64 DARRAY_FIELD_LENGTH = 3;
+  static constexpr uint64 DARRAY_FIELD_LENGTH = 0;
 
   DArray(uint64 stride = sizeof(T));
   DArray(uint64 capacity, uint64 stride = sizeof(T));
-  ~DArray() = default;
+  ~DArray();
 
   uint64 GetCapacity() const;
   void SetCapacity(uint64 capacity);
@@ -49,33 +49,32 @@ public:
 
 private:
   void InitializeMemory();
+  T *GetAddressOf(uint64 index) noexcept;
+  const T *GetAddressOf(uint64 index) const noexcept;
 
   uint64 _capacity;
   uint64 _length;
   uint64 _stride;
-  std::unique_ptr<T[],
-                  core::memory::CustomDeleter<T, DARRAY_DEFAULT_SIZE,
-                                              core::memory::MEMORY_TAG_DARRAY>>
-      _array;
+  std::unique_ptr<T[], core::memory::StatefulCustomDeleter<T>> _array;
 };
 
 template <typename T>
 DArray<T>::DArray(uint64 stride)
     : _capacity(DARRAY_DEFAULT_SIZE), _length(0), _stride(stride),
-      _array(nullptr,
-             core::memory::CustomDeleter<T, DARRAY_DEFAULT_SIZE,
-                                         core::memory::MEMORY_TAG_DARRAY>()) {
+      _array(nullptr, core::memory::StatefulCustomDeleter<T>(
+                          0, core::memory::MEMORY_TAG_DARRAY)) {
   InitializeMemory();
 }
 
 template <typename T>
 DArray<T>::DArray(uint64 capacity, uint64 stride)
     : _capacity(capacity), _length(0), _stride(stride),
-      _array(nullptr,
-             core::memory::CustomDeleter<T, DARRAY_DEFAULT_SIZE,
-                                         core::memory::MEMORY_TAG_DARRAY>()) {
+      _array(nullptr, core::memory::StatefulCustomDeleter<T>(
+                          0, core::memory::MEMORY_TAG_DARRAY)) {
   InitializeMemory();
 }
+
+template <typename T> DArray<T>::~DArray() { Clear(); }
 
 template <typename T> uint64 DArray<T>::GetCapacity() const {
   return _capacity;
@@ -114,8 +113,7 @@ template <typename T> void DArray<T>::Resize() {
   // Move each existing element from old array to new one
   for (uint64 i = 0; i < _length; i++) {
     // Calculate pointers for the current element to old and new arrays
-    T *oldElem = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
-                                       i * _stride);
+    T *oldElem = GetAddressOf(i);
     T *newElem = reinterpret_cast<T *>(reinterpret_cast<char *>(newMemory) +
                                        i * _stride);
 
@@ -126,14 +124,15 @@ template <typename T> void DArray<T>::Resize() {
     oldElem->~T();
   }
 
-  // Once we're done, we need to free the old memory
-  uint64 totalOldSize = headerSize + _capacity * _stride;
-  core::memory::MemoryManager::Free(_array.get(), totalOldSize,
-                                    core::memory::MEMORY_TAG_DARRAY);
+  // Create a new unique_ptr with a stateful deleter using the new total size.
+  std::unique_ptr<T[], core::memory::StatefulCustomDeleter<T>> newArray(
+      newMemory, core::memory::StatefulCustomDeleter<T>(
+                     totalNewSize, core::memory::MEMORY_TAG_DARRAY));
+
+  _array = std::move(newArray);
 
   // Update internal state
   _capacity = newCapacity;
-  _array.reset(newMemory);
 }
 
 template <typename T> void DArray<T>::Push(const T &element) {
@@ -141,9 +140,7 @@ template <typename T> void DArray<T>::Push(const T &element) {
     Resize();
   }
 
-  // Calculate the destination address of the last element
-  T *dest = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
-                                  _length * _stride);
+  T *dest = GetAddressOf(_length);
 
   // Construct the new element in place
   new (dest) T(element);
@@ -155,8 +152,7 @@ template <typename T> void DArray<T>::Pop() {
     return;
 
   // Calculate the destination address of the last element
-  T *last = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
-                                  ((_length - 1) * _stride));
+  T *last = GetAddressOf(_length - 1);
 
   // Explicitly call delete on last element
   last->~T();
@@ -178,17 +174,14 @@ template <typename T> void DArray<T>::InsertAt(const T &element, uint64 index) {
   // (except for the very end) already contain objects, use assignment.
   // Start from the end and go backwards.
   for (uint64 i = _length; i > index; i--) {
-    T *dest = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
-                                    (i * _stride));
-    T *source = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
-                                      ((i - 1) * _stride));
+    T *dest = GetAddressOf(i);
+    T *source = GetAddressOf(i - 1);
     *dest = std::move(*source);
   }
 
   // Now, if index == _length then the slot is uninitialized; otherwise, it is
   // already constructed. In the latter case, we can assign to it.
-  T *insertLoc = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
-                                       (index * _stride));
+  T *insertLoc = GetAddressOf(index);
   if (index < _length) {
     // Use copy assignment.
     *insertLoc = element;
@@ -207,25 +200,20 @@ template <typename T> void DArray<T>::PopAt(uint64 index) {
 
   // Shift elements to the left.
   for (uint64 i = index; i < _length - 1; i++) {
-    T *dest = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
-                                    (i * _stride));
-    T *source = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
-                                      ((i + 1) * _stride));
+    T *dest = GetAddressOf(i);
+    T *source = GetAddressOf(i - 1);
     *dest = std::move(*source);
   }
 
   // Now the last element is a duplicate; call its destructor.
-  T *last = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
-                                  ((_length - 1) * _stride));
+  T *last = GetAddressOf(_length - 1);
   last->~T();
   _length--;
 }
 
 template <typename T> void DArray<T>::Clear() {
   for (uint64 i = 0; i < _length; i++) {
-    T *element = reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
-                                       (i * _stride));
-    element->~T();
+    GetAddressOf(i)->~T();
   }
 
   _length = 0;
@@ -258,18 +246,31 @@ template <typename T> bool DArray<T>::IsEmpty() const { return _length == 0; }
 template <typename T> void DArray<T>::InitializeMemory() {
   uint64 headerSize = DARRAY_FIELD_LENGTH * sizeof(uint64);
   uint64 arraySize = _capacity * _stride;
-  _array = std::unique_ptr<
-      T[], core::memory::CustomDeleter<T, DARRAY_DEFAULT_SIZE,
-                                       core::memory::MEMORY_TAG_DARRAY>>(
+  uint64 totalSize = headerSize + arraySize;
+
+  // Allocate memory
+  T *allocatedMemory =
       reinterpret_cast<T *>(core::memory::MemoryManager::Allocate(
-          headerSize + arraySize, core::memory::MEMORY_TAG_DARRAY)),
-      core::memory::CustomDeleter<T, DARRAY_DEFAULT_SIZE,
-                                  core::memory::MEMORY_TAG_DARRAY>());
+          totalSize, core::memory::MEMORY_TAG_DARRAY));
+
+  _array = std::unique_ptr<T[], core::memory::StatefulCustomDeleter<T>>(
+      allocatedMemory, core::memory::StatefulCustomDeleter<T>(
+                           totalSize, core::memory::MEMORY_TAG_DARRAY));
 
   core::memory::MemoryManager::SetMemory(_array.get(), 0,
                                          headerSize + arraySize);
 }
 
+template <typename T> T *DArray<T>::GetAddressOf(uint64 index) noexcept {
+  return reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
+                               (index * _stride));
+}
+
+template <typename T>
+const T *DArray<T>::GetAddressOf(uint64 index) const noexcept {
+  return reinterpret_cast<T *>(reinterpret_cast<char *>(_array.get()) +
+                               (index * _stride));
+}
 } // namespace containers
 } // namespace flatearth
 

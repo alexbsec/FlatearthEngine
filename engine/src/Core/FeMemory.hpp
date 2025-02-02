@@ -2,6 +2,7 @@
 #define _FLATEARTH_ENGINE_FE_MEMORY_HPP
 
 #include "Definitions.hpp"
+#include "Core/Logger.hpp"
 
 #include <array>
 
@@ -67,7 +68,7 @@ private:
   static bool _initialized;
 };
 
-// Custom deleter structure to manage memory inside std::unique_ptr
+// Stateless custom deleter structure to manage memory inside std::unique_ptr
 // std::shared_ptr when needed
 template <typename T, uint64 Size, MemoryTag Tag> struct CustomDeleter {
   void operator()(T *ptr) const {
@@ -75,6 +76,30 @@ template <typename T, uint64 Size, MemoryTag Tag> struct CustomDeleter {
       MemoryManager::Free(ptr, Size * sizeof(T), Tag);
     }
   };
+};
+
+template <typename T> class StatefulCustomDeleter {
+public:
+  StatefulCustomDeleter(uint64 allocatedSize, MemoryTag tag)
+      : _allocatedSize(allocatedSize), _tag(tag) {}
+
+  // This operator will be called by the unique_ptr when it is time to free
+  // memory.
+  void operator()(T *ptr) const {
+    if (ptr) {
+      MemoryManager::Free(ptr, _allocatedSize, _tag);
+    }
+  }
+
+  // Allow updating the allocated size if it changes (e.g. during a resize of
+  // DArray).
+  void UpdateSize(uint64 newAllocatedSize) {
+    _allocatedSize = newAllocatedSize;
+  }
+
+private:
+  uint64 _allocatedSize;
+  MemoryTag _tag;
 };
 
 } // namespace memory

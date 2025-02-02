@@ -1,6 +1,7 @@
 #ifndef _FLATEARTH_ENGINE_APPLICATION_HPP
 #define _FLATEARTH_ENGINE_APPLICATION_HPP
 
+#include "Containers/SArray.hpp"
 #include "Core/Event.hpp"
 #include "Core/Input.hpp"
 #include "Definitions.hpp"

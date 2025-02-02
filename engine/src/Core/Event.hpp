@@ -2,11 +2,14 @@
 #define _FLATEARTH_ENGINE_EVENT_HPP
 
 #include "Containers/DArray.hpp"
+#include "Containers/SArray.hpp"
 #include "Definitions.hpp"
 #include <array>
 #include <functional>
 #include <stdexcept>
 #include <variant>
+
+using flatearth::containers::SArray;
 
 namespace flatearth {
 namespace core {
