@@ -9,7 +9,8 @@
 extern bool CreateGame(flatearth::gametypes::game *gameOut);
 
 int main(void) {
-  flatearth::core::memory::MemoryManager memoryManager;
+  flatearth::core::memory::MemoryManager &memoryManager =
+      flatearth::core::memory::MemoryManager::GetInstance();
 
   flatearth::gametypes::game gameInst;
 

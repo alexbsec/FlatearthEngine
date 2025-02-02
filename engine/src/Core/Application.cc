@@ -90,6 +90,8 @@ bool App::Run() {
 
   while (_appState.isRunning) {
 
+    // TODO: fix this mess, it's actually ok for now but might complicate things
+    // further
 #if FEPLATFORM_WINDOWS
     _platform->PollEvents();
 #elif FEPLATFORM_LINUX
@@ -146,8 +148,8 @@ bool App::OnEvent(events::SystemEventCode code, void *sender, void *listener,
                   const events::EventContext &context) {
   switch (code) {
   case events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT:
-    FINFO(
-        "AppOnEvent(): EVENT_CODE_APPLICATION_QUIT received, shutting down...");
+    FINFO("App::AppOnEvent(): EVENT_CODE_APPLICATION_QUIT received, shutting "
+          "down...");
     _appState.isRunning = FeFalse;
     return FeTrue;
   default:

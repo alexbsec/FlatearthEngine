@@ -11,16 +11,23 @@ namespace core {
 namespace memory {
 
 MemoryBlock MemoryManager::_memoryBlock;
+bool MemoryManager::_initialized = FeFalse;
 
 static constexpr std::array<vstring, MEMORY_TAG_MAX_TAGS> memTagNames = {
     "UNKNOWN", "ARRAY",       "DARRAY", "DICT",        "RING_QUEUE", "BST",
     "STRING",  "APPLICATION", "JOB",    "TEXTURE",     "MAT_INST",   "RENDERER",
     "GAME",    "TRANSFORM",   "ENTITY", "ENTITY_NODE", "SCENE"};
 
-MemoryManager::MemoryManager() {
-  FINFO("MemoryManager::MemoryManager(): memory manager correctly initialized");
-  platform::Platform::PZeroMemory(&_memoryBlock, sizeof(_memoryBlock));
+MemoryManager &MemoryManager::GetInstance() {
+  static MemoryManager instance = MemoryManager();
+  return instance;
 }
+
+MemoryManager::~MemoryManager() {
+  FINFO("MemoryManager::~MemoryManager(): shutting down memory manager...");
+  _initialized = FeFalse;
+}
+
 
 void *MemoryManager::Allocate(uint64 size, MemoryTag tag) {
   CheckTag(tag, "MemoryManager::Allocate()");
@@ -91,6 +98,19 @@ string MemoryManager::PrintMemoryUsage() const {
   }
 
   return oss.str();
+}
+
+// Private members
+
+MemoryManager::MemoryManager() {
+  if (_initialized) {
+    FWARN("MemoryManager::MemoryManager(): attempt to create more than one "
+          "instance of memory manager");
+  }
+
+  FINFO("MemoryManager::MemoryManager(): memory manager correctly initialized");
+  platform::Platform::PZeroMemory(&_memoryBlock, sizeof(_memoryBlock));
+  _initialized = FeTrue;
 }
 
 void MemoryManager::CheckTag(MemoryTag tag, const string &from) {

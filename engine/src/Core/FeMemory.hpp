@@ -49,7 +49,8 @@ struct MemoryBlock {
 
 class MemoryManager {
 public:
-  FEAPI MemoryManager();
+  FEAPI static MemoryManager &GetInstance();
+  FEAPI ~MemoryManager();
 
   FEAPI static void *Allocate(uint64 size, MemoryTag tag);
   FEAPI static void Free(void *block, uint64 size, MemoryTag tag);
@@ -59,24 +60,25 @@ public:
   FEAPI string PrintMemoryUsage() const;
 
 private:
-  static void CheckTag(MemoryTag tag, const string& from);
-  
+  MemoryManager();
+  static void CheckTag(MemoryTag tag, const string &from);
+
   static MemoryBlock _memoryBlock;
+  static bool _initialized;
 };
 
-
-// Custom deleter structure
-template <typename T, uint64 Size, MemoryTag Tag>
-struct CustomDeleter {
-  void operator()(T* ptr) const {
+// Custom deleter structure to manage memory inside std::unique_ptr
+// std::shared_ptr when needed
+template <typename T, uint64 Size, MemoryTag Tag> struct CustomDeleter {
+  void operator()(T *ptr) const {
     if (ptr) {
-      MemoryManager::Free(ptr, Size * sizeof(T), Tag);  
+      MemoryManager::Free(ptr, Size * sizeof(T), Tag);
     }
   };
 };
 
-}
-}
-}
+} // namespace memory
+} // namespace core
+} // namespace flatearth
 
 #endif // _FLATEARTH_ENGINE_FE_MEMORY_HPP
