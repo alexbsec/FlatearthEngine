@@ -18,24 +18,24 @@ support both Windows and Linux operating systems.
 
 ## Project Structure
 
-1. Flatearth Engine Library
+1. **Flatearth Engine Library**:
 The core engine library (shared object/dynamic link library) is not executable but
 is referenced by applications. It houses all core engine functionality, including rendering,
 physics, and memory management.
 
-2. Game Application
+2. **Game Application**:
 A lightweight executable that references the Flatearth Engine Library. This serves as the entry
 point for games built on the engine.
 
-3. Hot-Reloadable Code
+3. **Hot-Reloadable Code**:
 A support library for the Game Application that allows lightweight runtime updates. It helps
 to keep the game application small and facilitates rapid iteration by minimizing compilation time.
 
-4. Testsuite
+4. **Testsuite**:
 An executable designed to test specific features of the engine. Like the Game Application,
 it references the Flatearth Engine Library.
 
-5. Editor
+5. **Editor**:
 A standalone application separate from the core engine. The editor is designed for creating and
 managing game assets, and it can be run alongside the game application for real-time development.
 
