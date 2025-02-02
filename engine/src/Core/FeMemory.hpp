@@ -91,12 +91,6 @@ public:
     }
   }
 
-  // Allow updating the allocated size if it changes (e.g. during a resize of
-  // DArray).
-  void UpdateSize(uint64 newAllocatedSize) {
-    _allocatedSize = newAllocatedSize;
-  }
-
 private:
   uint64 _allocatedSize;
   MemoryTag _tag;
