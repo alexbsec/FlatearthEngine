@@ -1,5 +1,4 @@
 #include "Application.hpp"
-#include "Containers/SArray.hpp"
 #include "GameTypes.hpp"
 
 namespace flatearth {
