@@ -1,8 +1,8 @@
 #ifndef _FLATEARTH_ENGINE_FE_MEMORY_HPP
 #define _FLATEARTH_ENGINE_FE_MEMORY_HPP
 
-#include "Definitions.hpp"
 #include "Core/Logger.hpp"
+#include "Definitions.hpp"
 
 #include <array>
 
@@ -70,7 +70,8 @@ private:
 
 // Stateless custom deleter structure to manage memory inside std::unique_ptr
 // std::shared_ptr when needed
-template <typename T, uint64 Size, MemoryTag Tag> struct CustomDeleter {
+template <typename T, uint64 Size, MemoryTag Tag>
+struct StatelessCustomDeleter {
   void operator()(T *ptr) const {
     if (ptr) {
       MemoryManager::Free(ptr, Size * sizeof(T), Tag);

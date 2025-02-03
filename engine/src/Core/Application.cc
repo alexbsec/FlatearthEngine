@@ -1,5 +1,7 @@
 #include "Application.hpp"
 #include "GameTypes.hpp"
+#include "Renderer/RendererFrontend.hpp"
+#include "Renderer/RendererTypes.inl"
 
 namespace flatearth {
 namespace core {
@@ -70,6 +72,14 @@ bool App::Init() {
     return FeFalse;
   }
 
+  try {
+    _frontendRenderer = std::make_unique<renderer::FrontendRenderer>(
+        _appState.gameInstance->appConfig.name, &_appState.platform);
+  } catch (const std::exception &e) {
+    FFATAL("App::Init(): failed to create frontend renderer: %s", e.what());
+    return FeFalse;
+  }
+
   if (!_appState.gameInstance->Initialize(_appState.gameInstance)) {
     FFATAL("App::Init(): failed to initialize application");
     return FeFalse;
@@ -130,6 +140,12 @@ bool App::Run() {
       break;
     }
 
+    // Hardcoded just to make it up and running
+    // TODO: remove
+    renderer::RenderPacket packet;
+    packet.deltaTime = deltaTime;
+    _frontendRenderer->DrawFrame(&packet);
+
     // Figure out how long the frame took
     float64 frameEndTime = platform::Platform::GetAbsoluteTime();
     float64 frameElapsedTime = frameEndTime - frameStartTime;
@@ -137,7 +153,7 @@ bool App::Run() {
     float64 remainingSeconds = targetFrameSeconds - frameElapsedTime;
 
     if (remainingSeconds > 0.0f) {
-      float64 remainingMilliseconds = (remainingSeconds * 1000); 
+      float64 remainingMilliseconds = (remainingSeconds * 1000);
       // Hardcoded for debugging purposes
       bool limitFrames = FeFalse;
       if (remainingMilliseconds > 0.0f && limitFrames) {
@@ -160,8 +176,9 @@ bool App::Run() {
 }
 
 void App::ShutDown() {
-  if (!_initialized)
+  if (!_initialized) {
     return;
+  }
 
   _appState.isRunning = FeFalse;
 }
@@ -170,7 +187,8 @@ void App::ShutDown() {
 
 App::App(struct gametypes::Game *gameInstance)
     : _eventManager(core::events::EventManager::GetInstance()),
-      _inputManager(core::input::InputManager::GetInstance()) {
+      _inputManager(core::input::InputManager::GetInstance()),
+      _frontendRenderer(nullptr) {
 
   _appState.gameInstance = gameInstance;
 

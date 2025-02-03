@@ -41,7 +41,7 @@ private:
   const T *GetAddressOf(uint64 index) const noexcept;
   static constexpr uint64 _stride = sizeof(T);
   std::unique_ptr<
-      T[], core::memory::CustomDeleter<T, Size, core::memory::MEMORY_TAG_ARRAY>>
+      T[], core::memory::StatelessCustomDeleter<T, Size, core::memory::MEMORY_TAG_ARRAY>>
       _array;
 };
 
@@ -53,11 +53,11 @@ SArray<T, Size>::SArray() {
   }
   uint64 headerSize = SARRAY_FIELD_LENGTH * sizeof(T);
   uint64 arraySize = _stride * Size;
-  _array = std::unique_ptr<T[], core::memory::CustomDeleter<
+  _array = std::unique_ptr<T[], core::memory::StatelessCustomDeleter<
                                     T, Size, core::memory::MEMORY_TAG_ARRAY>>(
       reinterpret_cast<T *>(core::memory::MemoryManager::Allocate(
           headerSize + arraySize, core::memory::MEMORY_TAG_ARRAY)),
-      core::memory::CustomDeleter<T, Size, core::memory::MEMORY_TAG_ARRAY>());
+      core::memory::StatelessCustomDeleter<T, Size, core::memory::MEMORY_TAG_ARRAY>());
 
   core::memory::MemoryManager::SetMemory(_array.get(), 0,
                                          headerSize + arraySize);

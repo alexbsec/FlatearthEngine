@@ -7,6 +7,7 @@
 #include "Definitions.hpp"
 #include "Logger.hpp"
 #include "Platform/Platform.hpp"
+#include "Renderer/RendererFrontend.hpp"
 
 namespace flatearth {
 
@@ -73,6 +74,7 @@ private:
   static bool _initialized;
   std::unique_ptr<logger::Logger> _logger;
   std::unique_ptr<platform::Platform> _platform;
+  std::unique_ptr<renderer::FrontendRenderer> _frontendRenderer;
   core::events::EventManager &_eventManager;
   core::input::InputManager &_inputManager;
 };
