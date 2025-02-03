@@ -37,6 +37,8 @@ add_library(${BINARY_NAME} SHARED ${SOURCE_FILES})
 ############################################################################
 #   PLATFORM-SPECIFIC SETTINGS
 
+find_package(Vulkan REQUIRED)
+
 if(UNIX AND NOT MSVC)
     # Use hidden symbol visibility by default
     set(CMAKE_CXX_VISIBILITY_PRESET hidden)
@@ -50,11 +52,13 @@ if(UNIX AND NOT MSVC)
             xcb
             X11-xcb
             xcb-keysyms
+            Vulkan::Vulkan
     )
 elseif(WIN32)
     if(MSVC)
         # Add target name to target_compile_options
         target_compile_options(${BINARY_NAME} PRIVATE /W4 /permissive- /std:c++latest)
+        target_link_libraries(${BINARY_NAME} Vulkan::Vulkan)
     endif()
 endif()
 

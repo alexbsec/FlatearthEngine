@@ -35,6 +35,8 @@ set(SOURCE_FILES
 # Define the testing executable
 add_executable(${BINARY_NAME} ${SOURCE_FILES})
 
+find_package(Vulkan REQUIRED)
+
 # On Unix (excluding MSVC), link X11/XCB
 if(UNIX AND NOT MSVC)
     target_link_libraries(${BINARY_NAME}
@@ -43,11 +45,13 @@ if(UNIX AND NOT MSVC)
             xcb
             X11-xcb
             xcb-keysyms
+            Vulkan::Vulkan
     )
 elseif(WIN32)
     if(MSVC)
         # Add target name to target_compile_options
         target_compile_options(${BINARY_NAME} PRIVATE /W4 /permissive- /std:c++latest)
+        target_link_libraries(${BINARY_NAME} Vulkan::Vulkan)
     endif()
 endif()
 
