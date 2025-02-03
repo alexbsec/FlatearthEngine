@@ -1,8 +1,8 @@
 #ifndef _FLATEARTH_ENGINE_APPLICATION_HPP
 #define _FLATEARTH_ENGINE_APPLICATION_HPP
 
-#include "Containers/SArray.hpp"
 #include "Core/Event.hpp"
+#include "Core/Clock.hpp"
 #include "Core/Input.hpp"
 #include "Definitions.hpp"
 #include "Logger.hpp"
@@ -44,6 +44,7 @@ struct ApplicationState {
   sshort width;
   sshort height;
   float64 lastTime;
+  core::clock::Clock clock;
 };
 
 class App {

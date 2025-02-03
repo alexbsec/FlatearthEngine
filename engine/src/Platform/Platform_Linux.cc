@@ -17,6 +17,12 @@
 #include <xcb/xcb.h>
 #include <xcb/xproto.h>
 
+#if _POSIX_C_SOURCE >= 199309L
+#include <time.h>
+#else
+#include <unistd.h>
+#endif
+
 struct InternalState {
   Display *display;
   xcb_connection_t *connection;
@@ -256,6 +262,26 @@ void Platform::ConsoleError(const string &message, uchar color) {
   // FATAL, ERROR, WARN, INFO, DEBUG, TRACE
   const char *colorStrings[] = {"0;41", "1;31", "1;33", "1;32", "1;34", "1;30"};
   std::println("\033[{0}m{1}\033[0m", colorStrings[color], message);
+}
+
+float64 Platform::GetAbsoluteTime() {
+  struct timespec now;
+  clock_gettime(CLOCK_MONOTONIC, &now);
+  return now.tv_sec + now.tv_nsec * 0.000000001;
+}
+
+void Platform::Sleep(uint64 milliseconds) {
+#if _POSIX_C_SOURCE >= 199309L
+  struct timespec ts;
+  ts.tv_sec = milliseconds / 1000;
+  ts.tv_nsec = (milliseconds % 1000) * 1000 * 1000;
+  nanosleep(&ts, 0);
+#else
+  if (milliseconds >= 1000) {
+    sleep(milliseconds / 1000);
+  }
+  usleep((ms % 1000) * 1000);
+#endif
 }
 
 core::input::Keys TranslateKeysymbol(uint32 keySymbol) {

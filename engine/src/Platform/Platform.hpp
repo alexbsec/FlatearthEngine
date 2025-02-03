@@ -27,6 +27,8 @@ public:
   static void *PSetMemory(void *dest, sint32 value, uint64 size);
   static void ConsoleWrite(const string &message, uchar color);
   static void ConsoleError(const string &message, uchar color);
+  static float64 GetAbsoluteTime();
+  static void Sleep(uint64 milliseconds);
 
 private:
   PlatformState *_state;

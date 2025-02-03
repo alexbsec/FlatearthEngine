@@ -88,6 +88,14 @@ bool App::Run() {
     return FeFalse;
   }
 
+  // Clock setup
+  _appState.clock.Stop();
+  _appState.clock.Update();
+  _appState.lastTime = _appState.clock.elapsed;
+  float64 runningTime = 0.0f;
+  uchar frameCount = 0;
+  float64 targetFrameSeconds = 1.0f / 60;
+
   while (_appState.isRunning) {
 
     // TODO: fix this mess, it's actually ok for now but might complicate things
@@ -105,17 +113,45 @@ bool App::Run() {
       continue;
     }
 
-    if (!_appState.gameInstance->Update(_appState.gameInstance, (float32)0)) {
+    _appState.clock.Update();
+    float64 currentTime = _appState.clock.elapsed;
+    float64 deltaTime = (currentTime - _appState.lastTime);
+    float64 frameStartTime = platform::Platform::GetAbsoluteTime();
+
+    if (!_appState.gameInstance->Update(_appState.gameInstance,
+                                        (float32)deltaTime)) {
       FFATAL("App::Run(): game update failed, shutting down application...");
       break;
     }
 
-    if (!_appState.gameInstance->Render(_appState.gameInstance, (float32)0)) {
+    if (!_appState.gameInstance->Render(_appState.gameInstance,
+                                        (float32)deltaTime)) {
       FFATAL("App::Run(): game render failed, shutting down application...");
       break;
     }
 
-    _inputManager.Update(0);
+    // Figure out how long the frame took
+    float64 frameEndTime = platform::Platform::GetAbsoluteTime();
+    float64 frameElapsedTime = frameEndTime - frameStartTime;
+    runningTime += frameElapsedTime;
+    float64 remainingSeconds = targetFrameSeconds - frameElapsedTime;
+
+    if (remainingSeconds > 0.0f) {
+      float64 remainingMilliseconds = (remainingSeconds * 1000); 
+      // Hardcoded for debugging purposes
+      bool limitFrames = FeFalse;
+      if (remainingMilliseconds > 0.0f && limitFrames) {
+        platform::Platform::Sleep(remainingMilliseconds - 1);
+      }
+
+      // Increase frame count
+      frameCount++;
+    }
+
+    _inputManager.Update(deltaTime);
+
+    // Update last time
+    _appState.lastTime = currentTime;
   }
 
   _appState.isRunning = FeFalse;
