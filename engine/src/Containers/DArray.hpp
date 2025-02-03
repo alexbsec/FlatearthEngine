@@ -11,6 +11,10 @@
 namespace flatearth {
 namespace containers {
 
+template <typename T>
+using unique_darray_ptr =
+    std::unique_ptr<T[], core::memory::StatefulCustomDeleter<T>>;
+
 template <typename T> class DArray {
 public:
   // Constants
@@ -55,7 +59,7 @@ private:
   uint64 _capacity;
   uint64 _length;
   uint64 _stride;
-  std::unique_ptr<T[], core::memory::StatefulCustomDeleter<T>> _array;
+  unique_darray_ptr<T> _array;
 };
 
 template <typename T>
@@ -125,7 +129,7 @@ template <typename T> void DArray<T>::Resize() {
   }
 
   // Create a new unique_ptr with a stateful deleter using the new total size.
-  std::unique_ptr<T[], core::memory::StatefulCustomDeleter<T>> newArray(
+  unique_darray_ptr<T> newArray(
       newMemory, core::memory::StatefulCustomDeleter<T>(
                      totalNewSize, core::memory::MEMORY_TAG_DARRAY));
 
@@ -253,9 +257,9 @@ template <typename T> void DArray<T>::InitializeMemory() {
       reinterpret_cast<T *>(core::memory::MemoryManager::Allocate(
           totalSize, core::memory::MEMORY_TAG_DARRAY));
 
-  _array = std::unique_ptr<T[], core::memory::StatefulCustomDeleter<T>>(
-      allocatedMemory, core::memory::StatefulCustomDeleter<T>(
-                           totalSize, core::memory::MEMORY_TAG_DARRAY));
+  _array = unique_darray_ptr(allocatedMemory,
+                             core::memory::StatefulCustomDeleter<T>(
+                                 totalSize, core::memory::MEMORY_TAG_DARRAY));
 
   core::memory::MemoryManager::SetMemory(_array.get(), 0,
                                          headerSize + arraySize);
