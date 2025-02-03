@@ -99,7 +99,7 @@ bool App::Run() {
   }
 
   // Clock setup
-  _appState.clock.Stop();
+  _appState.clock.Start();
   _appState.clock.Update();
   _appState.lastTime = _appState.clock.elapsed;
   float64 runningTime = 0.0f;
