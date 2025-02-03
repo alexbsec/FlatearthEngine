@@ -68,6 +68,9 @@ managing game assets, and it can be run alongside the game application for real-
 
 ## Build requirements
 
+First and foremost, you should have Vulkan SDK installed. To follow the correct
+installation, please refer to [Vulkan Official Tutorial Page](https://vulkan-tutorial.com/Development_environment)
+
 ### Linux
 
 To build the project on Linux, we must have X11 and XCB, as these are the libraries
