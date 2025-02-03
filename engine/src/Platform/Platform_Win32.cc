@@ -174,6 +174,16 @@ void Platform::ConsoleError(const string &message, uchar color) {
                 numberWritten, 0);
 }
 
+float64 Platform::GetAbsoluteTime() {
+  LARGE_INTEGER nowTime;
+  QueryPerformanceCounter(&nowTime);
+  return (float64)nowTime.QuadPart * clockFrequency;
+}
+
+void Platform::Sleep(uint64 milliseconds) {
+  Sleep((DWORD)milliseconds);
+}
+
 } // namespace platform
 } // namespace flatearth
 
