@@ -257,7 +257,7 @@ template <typename T> void DArray<T>::InitializeMemory() {
       reinterpret_cast<T *>(core::memory::MemoryManager::Allocate(
           totalSize, core::memory::MEMORY_TAG_DARRAY));
 
-  _array = unique_darray_ptr(allocatedMemory,
+  _array = unique_darray_ptr<T>(allocatedMemory,
                              core::memory::StatefulCustomDeleter<T>(
                                  totalSize, core::memory::MEMORY_TAG_DARRAY));
 
