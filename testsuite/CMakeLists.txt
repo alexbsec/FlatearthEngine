@@ -46,19 +46,15 @@ if(UNIX AND NOT MSVC)
             X11-xcb
             xcb-keysyms
             Vulkan::Vulkan
+            flatearth
     )
 elseif(WIN32)
     if(MSVC)
         # Add target name to target_compile_options
         target_compile_options(${BINARY_NAME} PRIVATE /W4 /permissive- /std:c++latest)
-        target_link_libraries(${BINARY_NAME} Vulkan::Vulkan)
+        target_link_libraries(${BINARY_NAME} Vulkan::Vulkan flatearth)
     endif()
 endif()
-
-# Link against the Flatearth shared library.
-# On Windows, this will link flatearth.lib + flatearth.dll at runtime;
-# on Linux, libflatearth.so.
-target_link_libraries(${BINARY_NAME} PRIVATE flatearth)
 
 # Place the final executable in the local 'build' directory:
 set_target_properties(${BINARY_NAME} PROPERTIES

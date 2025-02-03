@@ -58,7 +58,7 @@ elseif(WIN32)
     if(MSVC)
         # Add target name to target_compile_options
         target_compile_options(${BINARY_NAME} PRIVATE /W4 /permissive- /std:c++latest)
-        target_link_libraries(${BINARY_NAME} Vulkan::Vulkan)
+        target_link_libraries(${BINARY_NAME} PRIVATE Vulkan::Vulkan)
     endif()
 endif()
 
