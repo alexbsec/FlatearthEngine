@@ -11,6 +11,13 @@ namespace vulkan {
 
 static Context context;
 
+VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(
+  VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+  uint32  messageTypes,
+  const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
+  void *userData
+);
+
 bool InitializeVulkan(unique_backend_renderer_ptr &backend,
                       const char *applicationName,
                       struct platform::PlatformState *platState) {
@@ -92,6 +99,34 @@ bool InitializeVulkan(unique_backend_renderer_ptr &backend,
   createInfo.ppEnabledLayerNames = requiredValidationLayerNames.Data();
 
   VK_CHECK(vkCreateInstance(&createInfo, context.allocator, &context.instance));
+  FINFO("InitializeVulkan(): Vulkan instance created");
+
+  // Vulkan debugger
+#if defined(_DEBUG)
+  FDEBUG("Creating Vulkan debugger...");
+  uint32 logSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                       VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
+                       VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+                       VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+
+  VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {
+      VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT};
+
+  debugCreateInfo.messageSeverity = logSeverity;
+  debugCreateInfo.messageType =
+      VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+      VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT |
+      VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
+  debugCreateInfo.pfnUserCallback = vkDebugCallback;
+
+  PFN_vkCreateDebugUtilsMessengerEXT func =
+      (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+          context.instance, "vkCreateDebugUtilsMessengerEXT");
+  FASSERT_MSG(func, "Failed to create debug messenger");
+  VK_CHECK(func(context.instance, &debugCreateInfo, context.allocator,
+                &context.debugMessenger));
+  FDEBUG("Vulkan debugger created");
+#endif
 
   FINFO("InitializeVulkan(): Vulkan renderer successfully initialized");
 
@@ -109,6 +144,32 @@ bool BeginFrameVulkan(unique_backend_renderer_ptr &backend, float32 deltaTime) {
 
 bool EndFrameVulkan(unique_backend_renderer_ptr &backend, float32 deltaTime) {
   return FeTrue;
+}
+
+VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(
+  VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+  uint32 messageTypes,
+  const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
+  void *userData
+) {
+  switch (messageSeverity) {
+  default:
+  case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+    FERROR(callbackData->pMessage);
+    break;
+  case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+    FWARN(callbackData->pMessage);
+    break;
+  case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+    FINFO(callbackData->pMessage);
+    break;
+  case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+    FTRACE(callbackData->pMessage);
+    break;
+  }
+
+  // This is a must
+  return VK_FALSE;
 }
 
 } // namespace vulkan
