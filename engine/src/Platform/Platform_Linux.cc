@@ -1,4 +1,5 @@
 #include "Platform.hpp"
+#include "Renderer/Vulkan/VulkanPlatform.hpp"
 #include <cstring>
 
 #if FEPLATFORM_LINUX
@@ -535,6 +536,10 @@ core::input::Keys TranslateKeysymbol(uint32 keySymbol) {
   default:
     return core::input::KEY_NULL;
   }
+}
+
+void GetRequiredExtNames(containers::DArray<const char *> *namesDArray) {
+    namesDArray->Push("VK_KHR_xcb_surface");
 }
 
 } // namespace platform

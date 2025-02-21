@@ -1,6 +1,7 @@
 #ifndef _FLATEARTH_ENGINE_VULKAN_TYPES_INL
 #define _FLATEARTH_ENGINE_VULKAN_TYPES_INL
 
+#include "Core/Asserts.hpp"
 #include "Definitions.hpp"
 
 #include <vulkan/vulkan.h>
@@ -10,12 +11,17 @@ namespace flatearth {
 namespace renderer {
 namespace vulkan {
 
+#define VK_CHECK(expr)                                                         \
+  {                                                                            \
+    FASSERT(expr == VK_SUCCESS)                                                \
+  }
+
 struct Context {
   VkInstance instance;
   VkAllocationCallbacks *allocator;
 };
 
-}
+} // namespace vulkan
 } // namespace renderer
 } // namespace flatearth
 

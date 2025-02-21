@@ -96,4 +96,9 @@ STATIC_ASSERT(sizeof(float64) == 8, "Expected float64 to be 8 bytes");
 #endif
 #endif
 
+#ifndef _DEBUG
+// Set to false if in release
+#define _DEBUG FeTrue
+#endif
+
 #endif // _FLATEARTH_ENGINE_DEFINITIONS_HP

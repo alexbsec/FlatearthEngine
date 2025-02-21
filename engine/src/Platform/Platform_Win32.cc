@@ -275,4 +275,8 @@ LRESULT CALLBACK win32ProcessMessage(HWND hwnd, uint32 msg, WPARAM wParam,
   return DefWindowProcA(hwnd, msg, wParam, lParam);
 }
 
+void GetRequiredExtNames(containers::DArray<const char *> *namesDArray) {
+  namesDArray->Push(&"VK_KHR_win32_surface");
+}
+
 #endif

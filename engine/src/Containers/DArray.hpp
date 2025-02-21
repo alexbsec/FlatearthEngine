@@ -35,6 +35,8 @@ public:
   uint64 GetStride() const;
   void SetStride(uint64 stride);
 
+  void Reserve(uint64 numOfElements);
+
   void Resize();
 
   void Push(const T &element);
@@ -43,6 +45,9 @@ public:
   void InsertAt(const T &element, uint64 index);
   void PopAt(uint64 index);
   void Clear();
+
+  T *Data() noexcept;
+  const T *Data() const noexcept;
 
   // Operators
   T &operator[](uint64 index);
@@ -98,6 +103,41 @@ template <typename T> uint64 DArray<T>::GetStride() const { return _stride; }
 
 template <typename T> void DArray<T>::SetStride(uint64 stride) {
   _stride = stride;
+}
+
+template <typename T> void DArray<T>::Reserve(uint64 numOfElements) {
+  if (numOfElements <= _capacity) {
+    return;
+  }
+
+  _capacity = numOfElements;
+
+  uint64 headerSize = DARRAY_FIELD_LENGTH * sizeof(uint64);
+  uint64 arraySize = _capacity * _stride;
+  uint64 totalSize = headerSize + arraySize;
+
+  // Allocate new memory
+  T *newMemory = reinterpret_cast<T *>(core::memory::MemoryManager::Allocate(
+      totalSize, core::memory::MEMORY_TAG_DARRAY));
+
+  core::memory::MemoryManager::SetMemory(newMemory, 0, totalSize);
+
+  // Move existing elements to the new memory
+  for (uint64 i = 0; i < _length; i++) {
+    T *oldElem = GetAddressOf(i);
+    T *newElem = reinterpret_cast<T *>(reinterpret_cast<char *>(newMemory) +
+                                       i * _stride);
+    new (newElem) T(std::move(*oldElem));
+    oldElem->~T();
+  }
+
+  // Assign new memory to _array with the correct deleter
+  _array = unique_darray_ptr<T>(
+      newMemory, core::memory::StatefulCustomDeleter<T>(
+                     totalSize, core::memory::MEMORY_TAG_DARRAY));
+
+  // Set the lenght equals the capacity if everything went ok
+  _length = _capacity;
 }
 
 template <typename T> void DArray<T>::Resize() {
@@ -223,6 +263,12 @@ template <typename T> void DArray<T>::Clear() {
   _length = 0;
 }
 
+template <typename T> T *DArray<T>::Data() noexcept { return _array.get(); }
+
+template <typename T> const T *DArray<T>::Data() const noexcept {
+  return _array.get();
+}
+
 template <typename T> T &DArray<T>::operator[](uint64 index) {
   if (index >= _length) {
     FERROR("DArray<T>::operator[]: index out of bounds");
@@ -257,9 +303,9 @@ template <typename T> void DArray<T>::InitializeMemory() {
       reinterpret_cast<T *>(core::memory::MemoryManager::Allocate(
           totalSize, core::memory::MEMORY_TAG_DARRAY));
 
-  _array = unique_darray_ptr<T>(allocatedMemory,
-                             core::memory::StatefulCustomDeleter<T>(
-                                 totalSize, core::memory::MEMORY_TAG_DARRAY));
+  _array = unique_darray_ptr<T>(
+      allocatedMemory, core::memory::StatefulCustomDeleter<T>(
+                           totalSize, core::memory::MEMORY_TAG_DARRAY));
 
   core::memory::MemoryManager::SetMemory(_array.get(), 0,
                                          headerSize + arraySize);
