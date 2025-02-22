@@ -12,11 +12,8 @@ namespace vulkan {
 static Context context;
 
 VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(
-  VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-  uint32  messageTypes,
-  const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
-  void *userData
-);
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, uint32 messageTypes,
+    const VkDebugUtilsMessengerCallbackDataEXT *callbackData, void *userData);
 
 bool InitializeVulkan(unique_backend_renderer_ptr &backend,
                       const char *applicationName,
@@ -136,8 +133,9 @@ bool InitializeVulkan(unique_backend_renderer_ptr &backend,
 void ShutdownVulkan(unique_backend_renderer_ptr &backend) {
   FDEBUG("ShutdownVulkan(): Destroying Vulkan debugger...");
   if (context.debugMessenger) {
-    PFN_vkDestroyDebugUtilsMessengerEXT func = 
-      (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(context.instance, "vkDestroyDebugUtilsMessengerEXT");
+    PFN_vkDestroyDebugUtilsMessengerEXT func =
+        (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+            context.instance, "vkDestroyDebugUtilsMessengerEXT");
     func(context.instance, context.debugMessenger, context.allocator);
   }
 
@@ -157,11 +155,8 @@ bool EndFrameVulkan(unique_backend_renderer_ptr &backend, float32 deltaTime) {
 }
 
 VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(
-  VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-  uint32 messageTypes,
-  const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
-  void *userData
-) {
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, uint32 messageTypes,
+    const VkDebugUtilsMessengerCallbackDataEXT *callbackData, void *userData) {
   switch (messageSeverity) {
   default:
   case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:

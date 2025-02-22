@@ -3,6 +3,7 @@
 
 #include "Platform/Platform.hpp"
 #include "Renderer/RendererTypes.inl"
+#include "VulkanTypes.inl"
 
 namespace flatearth {
 namespace renderer {
