@@ -133,7 +133,17 @@ bool InitializeVulkan(unique_backend_renderer_ptr &backend,
   return FeTrue;
 }
 
-void ShutdownVulkan(unique_backend_renderer_ptr &backend) {}
+void ShutdownVulkan(unique_backend_renderer_ptr &backend) {
+  FDEBUG("ShutdownVulkan(): Destroying Vulkan debugger...");
+  if (context.debugMessenger) {
+    PFN_vkDestroyDebugUtilsMessengerEXT func = 
+      (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(context.instance, "vkDestroyDebugUtilsMessengerEXT");
+    func(context.instance, context.debugMessenger, context.allocator);
+  }
+
+  FDEBUG("ShutdownVulkan(): Destroying Vulkan instance...");
+  vkDestroyInstance(context.instance, context.allocator);
+}
 
 void OnResizeVulkan(unique_backend_renderer_ptr &backend, ushort width,
                     ushort height) {}
