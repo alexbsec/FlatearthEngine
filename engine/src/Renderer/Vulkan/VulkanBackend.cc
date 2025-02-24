@@ -2,6 +2,7 @@
 #include "Containers/DArray.hpp"
 #include "Core/Logger.hpp"
 #include "Renderer/Vulkan/VulkanPlatform.hpp"
+#include "VulkanDevice.hpp"
 #include "VulkanTypes.inl"
 #include <vulkan/vulkan_core.h>
 
@@ -124,6 +125,19 @@ bool InitializeVulkan(unique_backend_renderer_ptr &backend,
                 &context.debugMessenger));
   FDEBUG("Vulkan debugger created");
 #endif
+
+  // Surface creation
+  FDEBUG("Creating Vulkan surface...");
+  if (!platform::CreateVulkanSurface(platState, &context)) {
+    FERROR("InitializeVulkan(): Failed to create Vulkan surface");
+    return FeFalse;
+  }
+  FDEBUG("Vulkan surface created");
+
+  if (!CreateDevice(&context)) {
+    FERROR("InitializeVulkan(): Failed to create device");
+    return FeFalse;
+  }
 
   FINFO("InitializeVulkan(): Vulkan renderer successfully initialized");
 

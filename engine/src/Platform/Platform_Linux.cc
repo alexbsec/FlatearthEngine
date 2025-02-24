@@ -1,17 +1,16 @@
 #include "Platform.hpp"
-#include "Renderer/Vulkan/VulkanPlatform.hpp"
-#include <cstring>
 
 #if FEPLATFORM_LINUX
 
-#include "Core/Event.hpp"
 #include "Core/Input.hpp"
 #include "Core/Logger.hpp"
+#include "Renderer/Vulkan/VulkanPlatform.hpp"
 
 #include <X11/XKBlib.h>
 #include <X11/Xlib-xcb.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
+#include <cstring>
 #include <ctime>
 #include <print>
 #include <stdexcept>
@@ -24,6 +23,12 @@
 #include <unistd.h>
 #endif
 
+#define VK_USE_PLATFORM_XCB_KHR
+#include "Renderer/Vulkan/VulkanTypes.inl"
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan_xcb.h>
+
 struct InternalState {
   Display *display;
   xcb_connection_t *connection;
@@ -31,6 +36,7 @@ struct InternalState {
   xcb_screen_t *screen;
   xcb_atom_t wm_protocols;
   xcb_atom_t wm_delete_win;
+  VkSurfaceKHR surface;
 };
 
 namespace flatearth {
@@ -538,8 +544,31 @@ core::input::Keys TranslateKeysymbol(uint32 keySymbol) {
   }
 }
 
+// Vulkan platform specifics
+
+bool CreateVulkanSurface(struct PlatformState *platState,
+                         struct renderer::vulkan::Context *context) {
+  InternalState *inStatePtr = core::memory::get_unique_void_ptr<InternalState>(
+      platState->internalState);
+
+  VkXcbSurfaceCreateInfoKHR createInfo = {
+      VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR};
+  createInfo.connection = inStatePtr->connection;
+  createInfo.window = inStatePtr->window;
+
+  VkResult result = vkCreateXcbSurfaceKHR(
+      context->instance, &createInfo, context->allocator, &inStatePtr->surface);
+  if (result != VK_SUCCESS) {
+    FFATAL("CreateVulkanSurface(): Vulkan surface failed to create");
+    return FeFalse;
+  }
+
+  context->surface = inStatePtr->surface;
+  return FeTrue;
+}
+
 void GetRequiredExtNames(containers::DArray<const char *> *namesDArray) {
-    namesDArray->Push("VK_KHR_xcb_surface");
+  namesDArray->Push("VK_KHR_xcb_surface");
 }
 
 } // namespace platform

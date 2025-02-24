@@ -19,6 +19,7 @@ namespace vulkan {
 struct Context {
   VkInstance instance;
   VkAllocationCallbacks *allocator;
+  VkSurfaceKHR surface;
 #if defined(_DEBUG)
   VkDebugUtilsMessengerEXT debugMessenger;
 #endif
