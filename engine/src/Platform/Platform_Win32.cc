@@ -9,9 +9,14 @@
 #include <windows.h>
 #include <windowsx.h>
 
+#include "Renderer/Vulkan/VulkanTypes.inl"
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_win32.h>
+
 struct InternalState {
   HINSTANCE hInstance;
   HWND hwnd;
+  VkSurfaceKHR surface;
 };
 
 static float64 clockFrequency;
@@ -180,9 +185,7 @@ float64 Platform::GetAbsoluteTime() {
   return (float64)nowTime.QuadPart * clockFrequency;
 }
 
-void Platform::Sleep(uint64 milliseconds) {
-  Sleep((DWORD)milliseconds);
-}
+void Platform::Sleep(uint64 milliseconds) { Sleep((DWORD)milliseconds); }
 
 } // namespace platform
 } // namespace flatearth
@@ -273,6 +276,27 @@ LRESULT CALLBACK win32ProcessMessage(HWND hwnd, uint32 msg, WPARAM wParam,
   }
 
   return DefWindowProcA(hwnd, msg, wParam, lParam);
+}
+
+bool CreateVulkanSurface(PlatformState *platState,
+                         renderer::vulkan::Context *context) {
+  InternalState *inStatePtr = core::memory::get_unique_void_ptr<InternalState>(
+      platState->internalState);
+
+  VkWin32SurfaceCreateInfoKHR createInfo = {
+      VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR};
+  createInfo.hinstance = inStatePtr->h_instance;
+  createInfo.hwnd = inStatePtr->hwnd;
+
+  VkResult result = vkCreateWin32SurfaceKHR(
+      context->instance, &createInfo, context->allocator, &inStatePtr->surface);
+  if (result != VK_SUCCESS) {
+    FFATAL("CreateVulkanSurface(): Vulkan surface failed to be created");
+    return FeFalse;
+  }
+
+  context->surface = inStatePtr->surface;
+  return FeTrue;
 }
 
 void GetRequiredExtNames(containers::DArray<const char *> *namesDArray) {
