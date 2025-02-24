@@ -153,6 +153,8 @@ bool PhysicalDeviceMeetsRequirements(
         outQueueInfo->transferFamilyIndex = -1, properties->deviceName);
 
   // TODO: compare against what is required
+  
+  return FeTrue;
 }
 
 } // namespace vulkan

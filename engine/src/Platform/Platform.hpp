@@ -30,6 +30,10 @@ public:
   static float64 GetAbsoluteTime();
   static void Sleep(uint64 milliseconds);
 
+  PlatformState *GetState() {
+    return _state;
+  }
+
 private:
   PlatformState *_state;
   sint32 _x_pos;

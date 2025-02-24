@@ -41,7 +41,7 @@ struct ApplicationState {
   gametypes::Game *gameInstance;
   bool isRunning;
   bool isSuspended;
-  platform::PlatformState platform;
+  platform::PlatformState *platform;
   sshort width;
   sshort height;
   float64 lastTime;

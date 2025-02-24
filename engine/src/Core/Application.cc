@@ -72,9 +72,11 @@ bool App::Init() {
     return FeFalse;
   }
 
+  _appState.platform = _platform->GetState();
+
   try {
     _frontendRenderer = std::make_unique<renderer::FrontendRenderer>(
-        _appState.gameInstance->appConfig.name, &_appState.platform);
+        _appState.gameInstance->appConfig.name, _appState.platform);
   } catch (const std::exception &e) {
     FFATAL("App::Init(): failed to create frontend renderer: %s", e.what());
     return FeFalse;
