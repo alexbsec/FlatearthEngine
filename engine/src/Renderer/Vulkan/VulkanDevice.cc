@@ -1,6 +1,8 @@
 #include "VulkanDevice.hpp"
 #include "Containers/DArray.hpp"
+#include "Core/FeMemory.hpp"
 #include "Core/Logger.hpp"
+#include "Renderer/Vulkan/VulkanTypes.inl"
 #include <vulkan/vulkan_core.h>
 
 namespace flatearth {
@@ -52,6 +54,13 @@ void QuerySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface,
       device, surface, &outSwapchainInfo->formatCount, nullptr));
 
   if (outSwapchainInfo->formatCount != 0) {
+    if (!outSwapchainInfo->formats) {
+      outSwapchainInfo->formats = unique_renderer_ptr<VkSurfaceFormatKHR>(
+          static_cast<VkSurfaceFormatKHR *>(
+              core::memory::MemoryManager::Allocate(
+                  sizeof(VkSurfaceFormatKHR) * outSwapchainInfo->formatCount,
+                  core::memory::MEMORY_TAG_RENDERER)));
+    }
     VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(
         device, surface, &outSwapchainInfo->formatCount,
         outSwapchainInfo->formats.get()));
@@ -61,6 +70,12 @@ void QuerySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface,
   VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(
       device, surface, &outSwapchainInfo->presentModeCount, nullptr));
   if (outSwapchainInfo->presentModeCount != 0) {
+    if (!outSwapchainInfo->presentMode) {
+      outSwapchainInfo->presentMode = unique_renderer_ptr<VkPresentModeKHR>(
+          static_cast<VkPresentModeKHR *>(core::memory::MemoryManager::Allocate(
+              sizeof(VkPresentModeKHR) * outSwapchainInfo->presentModeCount,
+              core::memory::MEMORY_TAG_RENDERER)));
+    }
     VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(
         device, surface, &outSwapchainInfo->presentModeCount,
         outSwapchainInfo->presentMode.get()));
