@@ -303,7 +303,8 @@ bool PhysicalDeviceMeetsRequirements(
     return FeTrue;
   }
 
-  return FeTrue;
+  // Reaching here means we did not find any device at all
+  return FeFalse;
 }
 
 } // namespace vulkan
