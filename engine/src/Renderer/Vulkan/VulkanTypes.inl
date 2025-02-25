@@ -31,6 +31,13 @@ struct Device {
   VkPhysicalDevice physicalDevice;
   VkDevice logicalDevice;
   SwapchainSupportInfo swapchainSupport;
+  sint32 graphicsQueueIndex;
+  sint32 presentQueueIndex;
+  sint32 transferQueueIndex;
+
+  VkPhysicalDeviceProperties properties;
+  VkPhysicalDeviceFeatures features;
+  VkPhysicalDeviceMemoryProperties memory;
 };
 
 struct Context {

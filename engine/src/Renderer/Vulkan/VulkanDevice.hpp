@@ -11,8 +11,11 @@ bool CreateDevice(Context *context);
 
 void DestroyDevice(Context *context);
 
-}
-}
-}
+void QuerySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface,
+                           SwapchainSupportInfo *outSwapchainInfo);
+
+} // namespace vulkan
+} // namespace renderer
+} // namespace flatearth
 
 #endif // _FLATEARTH_ENGINE_VULKAN_DEVICE_HPP
