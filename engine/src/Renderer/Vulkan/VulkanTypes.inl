@@ -35,6 +35,10 @@ struct Device {
   sint32 presentQueueIndex;
   sint32 transferQueueIndex;
 
+  VkQueue graphicsQueue;
+  VkQueue presentQueue;
+  VkQueue transferQueue;
+
   VkPhysicalDeviceProperties properties;
   VkPhysicalDeviceFeatures features;
   VkPhysicalDeviceMemoryProperties memory;

@@ -145,6 +145,9 @@ bool InitializeVulkan(unique_backend_renderer_ptr &backend,
 }
 
 void ShutdownVulkan(unique_backend_renderer_ptr &backend) {
+  FDEBUG("ShutdownVulkan(): Destroying/releasing device info...");
+  DestroyDevice(&context);
+
   FDEBUG("ShutdownVulkan(): Destroying Vulkan debugger...");
   if (context.debugMessenger) {
     PFN_vkDestroyDebugUtilsMessengerEXT func =
@@ -152,6 +155,9 @@ void ShutdownVulkan(unique_backend_renderer_ptr &backend) {
             context.instance, "vkDestroyDebugUtilsMessengerEXT");
     func(context.instance, context.debugMessenger, context.allocator);
   }
+
+  FDEBUG("ShutdownVulkan(): Destryoing Vulkan surface...");
+  vkDestroySurfaceKHR(context.instance, context.surface, context.allocator);
 
   FDEBUG("ShutdownVulkan(): Destroying Vulkan instance...");
   vkDestroyInstance(context.instance, context.allocator);

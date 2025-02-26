@@ -9,6 +9,8 @@ namespace flatearth {
 namespace renderer {
 namespace vulkan {
 
+#define MAX_QUEUE_TYPES 4
+
 // Private structures
 struct PhysicalDeviceRequirements {
   bool graphics;
@@ -39,9 +41,126 @@ bool PhysicalDeviceMeetsRequirements(
     PhysicalDeviceQueueFamilyInfo *outQueueInfo,
     SwapchainSupportInfo *outSwapchainInfo);
 
-bool CreateDevice(Context *context) { return SelectPhysicalDevice(context); }
+bool CreateDevice(Context *context) {
+  if (!SelectPhysicalDevice(context)) {
+    return FeFalse;
+  }
 
-void DestroyDevice(Context *context) {}
+  FINFO("CreateDevice(): Creating logical device...");
+
+  // Get queue family to not mess up the indices
+  uint32 queueFamilyCount = 0;
+  vkGetPhysicalDeviceQueueFamilyProperties(context->device.physicalDevice,
+                                           &queueFamilyCount, nullptr);
+  VkQueueFamilyProperties queueFamilies[queueFamilyCount];
+  vkGetPhysicalDeviceQueueFamilyProperties(context->device.physicalDevice,
+                                           &queueFamilyCount, queueFamilies);
+
+  uint32 indices[MAX_QUEUE_TYPES];
+  uint32 indexCount = 0;
+
+#define ADD_UNIQUE_QUEUE_INDEX(queueIndex)                                     \
+  do {                                                                         \
+    bool exists = FeFalse;                                                     \
+    for (uint32 j = 0; j < indexCount; j++) {                                  \
+      if (indices[j] == queueIndex) {                                          \
+        exists = FeTrue;                                                       \
+        break;                                                                 \
+      }                                                                        \
+    }                                                                          \
+    if (!exists && queueIndex < queueFamilyCount) {                            \
+      indices[indexCount++] = queueIndex;                                      \
+    }                                                                          \
+  } while (0)
+
+  ADD_UNIQUE_QUEUE_INDEX(context->device.graphicsQueueIndex);
+  ADD_UNIQUE_QUEUE_INDEX(context->device.presentQueueIndex);
+  ADD_UNIQUE_QUEUE_INDEX(context->device.transferQueueIndex);
+
+  VkDeviceQueueCreateInfo queueCreateInfo[indexCount];
+  for (uint32 i = 0; i < indexCount; i++) {
+    queueCreateInfo[i].sType = {VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO};
+    queueCreateInfo[i].queueFamilyIndex = indices[i];
+
+    uint32 maxQueues = queueFamilies[indices[i]].queueCount;
+
+    queueCreateInfo[i].queueCount =
+        (indices[i] == context->device.graphicsQueueIndex && maxQueues >= 2)
+            ? 2
+            : 1;
+
+    queueCreateInfo[i].queueCount = queueCreateInfo[i].queueCount > maxQueues
+                                        ? maxQueues
+                                        : queueCreateInfo[i].queueCount;
+
+    queueCreateInfo[i].flags = 0;
+    queueCreateInfo[i].pNext = nullptr;
+    float32 queuePriority = 1.0f;
+    queueCreateInfo[i].pQueuePriorities = &queuePriority;
+  }
+
+  // TODO: make this not hardcoded
+  VkPhysicalDeviceFeatures deviceFeatures = {};
+  deviceFeatures.samplerAnisotropy = VK_TRUE;
+
+  VkDeviceCreateInfo deviceCreateInfo = {VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
+  deviceCreateInfo.queueCreateInfoCount = indexCount;
+  deviceCreateInfo.pQueueCreateInfos = queueCreateInfo;
+  deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+  deviceCreateInfo.enabledExtensionCount = 1;
+  const char *extNames = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+  deviceCreateInfo.ppEnabledExtensionNames = &extNames;
+  deviceCreateInfo.enabledLayerCount = 0;
+  deviceCreateInfo.ppEnabledLayerNames = nullptr;
+
+  VK_CHECK(vkCreateDevice(context->device.physicalDevice, &deviceCreateInfo,
+                          context->allocator, &context->device.logicalDevice));
+
+  FINFO("CreateDevice(): Logical device created");
+
+  // Queue selection
+  vkGetDeviceQueue(context->device.logicalDevice,
+                   context->device.graphicsQueueIndex, 0,
+                   &context->device.graphicsQueue);
+  vkGetDeviceQueue(context->device.logicalDevice,
+                   context->device.presentQueueIndex, 0,
+                   &context->device.presentQueue);
+  vkGetDeviceQueue(context->device.logicalDevice,
+                   context->device.transferQueueIndex, 0,
+                   &context->device.transferQueue);
+
+  FINFO("CreateDevice(): Queues obtained");
+
+  return FeTrue;
+}
+
+void DestroyDevice(Context *context) {
+  context->device.graphicsQueue = nullptr;
+  context->device.presentQueue = nullptr;
+  context->device.transferQueue = nullptr;
+
+  if (context->device.logicalDevice) {
+    FINFO("DestroyDevice(): Destroying logical device...");
+    vkDestroyDevice(context->device.logicalDevice, context->allocator);
+    context->device.logicalDevice = nullptr;
+    FINFO("DestroyDevice(): Logical device destroyed");
+  }
+
+  // Releasing resources on physical device
+  FINFO("DestroyDevice(): Releasing physical device resources...");
+  context->device.physicalDevice = nullptr;
+  // No need to free resources because they are smart pointers
+  context->device.swapchainSupport.formatCount = 0;
+  context->device.swapchainSupport.presentModeCount = 0;
+
+  core::memory::MemoryManager::ZeroMemory(
+      &context->device.swapchainSupport.capabilities,
+      sizeof(context->device.swapchainSupport.capabilities));
+
+  context->device.graphicsQueueIndex = -1;
+  context->device.presentQueueIndex = -1;
+  context->device.transferQueueIndex = -1;
+}
 
 void QuerySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface,
                            SwapchainSupportInfo *outSwapchainInfo) {
