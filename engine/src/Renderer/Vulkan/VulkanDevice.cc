@@ -71,7 +71,7 @@ bool CreateDevice(Context *context) {
     if (!exists && queueIndex < queueFamilyCount) {                            \
       indices[indexCount++] = queueIndex;                                      \
     }                                                                          \
-  } while (0)
+  } while (FeTrue)
 
   ADD_UNIQUE_QUEUE_INDEX(context->device.graphicsQueueIndex);
   ADD_UNIQUE_QUEUE_INDEX(context->device.presentQueueIndex);
