@@ -1,7 +1,6 @@
 #ifndef _FLATEARTH_ENGINE_FE_MEMORY_HPP
 #define _FLATEARTH_ENGINE_FE_MEMORY_HPP
 
-#include "Core/Logger.hpp"
 #include "Definitions.hpp"
 
 #include <array>
@@ -96,6 +95,10 @@ private:
   uint64 _allocatedSize;
   MemoryTag _tag;
 };
+
+template <typename T>
+using unique_renderer_ptr =
+    std::unique_ptr<T, StatelessCustomDeleter<T, 1, MEMORY_TAG_RENDERER>>;
 
 } // namespace memory
 } // namespace core

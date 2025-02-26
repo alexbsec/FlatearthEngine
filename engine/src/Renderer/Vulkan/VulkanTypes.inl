@@ -12,19 +12,14 @@ namespace flatearth {
 namespace renderer {
 namespace vulkan {
 
-template <typename T>
-using unique_renderer_ptr =
-    std::unique_ptr<T, core::memory::StatelessCustomDeleter<
-                           T, 1, core::memory::MEMORY_TAG_RENDERER>>;
-
 #define VK_CHECK(expr) {FASSERT(expr == VK_SUCCESS)}
 
 struct SwapchainSupportInfo {
   VkSurfaceCapabilitiesKHR capabilities;
   uint32 formatCount;
-  unique_renderer_ptr<VkSurfaceFormatKHR> formats;
+  core::memory::unique_renderer_ptr<VkSurfaceFormatKHR> formats;
   uint32 presentModeCount;
-  unique_renderer_ptr<VkPresentModeKHR> presentMode;
+  core::memory::unique_renderer_ptr<VkPresentModeKHR> presentMode;
 };
 
 struct Device {

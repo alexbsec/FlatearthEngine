@@ -174,11 +174,13 @@ void QuerySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface,
 
   if (outSwapchainInfo->formatCount != 0) {
     if (!outSwapchainInfo->formats) {
-      outSwapchainInfo->formats = unique_renderer_ptr<VkSurfaceFormatKHR>(
-          static_cast<VkSurfaceFormatKHR *>(
-              core::memory::MemoryManager::Allocate(
-                  sizeof(VkSurfaceFormatKHR) * outSwapchainInfo->formatCount,
-                  core::memory::MEMORY_TAG_RENDERER)));
+      outSwapchainInfo->formats =
+          core::memory::unique_renderer_ptr<VkSurfaceFormatKHR>(
+              static_cast<VkSurfaceFormatKHR *>(
+                  core::memory::MemoryManager::Allocate(
+                      sizeof(VkSurfaceFormatKHR) *
+                          outSwapchainInfo->formatCount,
+                      core::memory::MEMORY_TAG_RENDERER)));
     }
     VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(
         device, surface, &outSwapchainInfo->formatCount,
@@ -190,7 +192,8 @@ void QuerySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface,
       device, surface, &outSwapchainInfo->presentModeCount, nullptr));
   if (outSwapchainInfo->presentModeCount != 0) {
     if (!outSwapchainInfo->presentMode) {
-      outSwapchainInfo->presentMode = unique_renderer_ptr<VkPresentModeKHR>(
+      outSwapchainInfo
+          ->presentMode = core::memory::unique_renderer_ptr<VkPresentModeKHR>(
           static_cast<VkPresentModeKHR *>(core::memory::MemoryManager::Allocate(
               sizeof(VkPresentModeKHR) * outSwapchainInfo->presentModeCount,
               core::memory::MEMORY_TAG_RENDERER)));
@@ -396,15 +399,16 @@ bool PhysicalDeviceMeetsRequirements(
     // Device extensions
     if (!requirements->deviceExtNames.IsEmpty()) {
       uint32 availableExtCount = 0;
-      unique_renderer_ptr<VkExtensionProperties> availableExts;
+      core::memory::unique_renderer_ptr<VkExtensionProperties> availableExts;
       VK_CHECK(vkEnumerateDeviceExtensionProperties(
           device, nullptr, &availableExtCount, nullptr));
       if (availableExtCount != 0) {
-        availableExts = unique_renderer_ptr<VkExtensionProperties>(
-            static_cast<VkExtensionProperties *>(
-                core::memory::MemoryManager::Allocate(
-                    sizeof(VkExtensionProperties) * availableExtCount,
-                    core::memory::MEMORY_TAG_RENDERER)));
+        availableExts =
+            core::memory::unique_renderer_ptr<VkExtensionProperties>(
+                static_cast<VkExtensionProperties *>(
+                    core::memory::MemoryManager::Allocate(
+                        sizeof(VkExtensionProperties) * availableExtCount,
+                        core::memory::MEMORY_TAG_RENDERER)));
         VK_CHECK(vkEnumerateDeviceExtensionProperties(
             device, nullptr, &availableExtCount, availableExts.get()));
 

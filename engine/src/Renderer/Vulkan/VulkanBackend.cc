@@ -16,9 +16,9 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, uint32 messageTypes,
     const VkDebugUtilsMessengerCallbackDataEXT *callbackData, void *userData);
 
-bool InitializeVulkan(unique_backend_renderer_ptr &backend,
-                      const char *applicationName,
-                      struct platform::PlatformState *platState) {
+bool InitializeVulkan(
+    core::memory::unique_renderer_ptr<RendererBackend> &backend,
+    const char *applicationName, struct platform::PlatformState *platState) {
   // TODO: custom allocator
   context.allocator = nullptr;
 
@@ -144,7 +144,8 @@ bool InitializeVulkan(unique_backend_renderer_ptr &backend,
   return FeTrue;
 }
 
-void ShutdownVulkan(unique_backend_renderer_ptr &backend) {
+void ShutdownVulkan(
+    core::memory::unique_renderer_ptr<RendererBackend> &backend) {
   FDEBUG("ShutdownVulkan(): Destroying/releasing device info...");
   DestroyDevice(&context);
 
@@ -163,14 +164,17 @@ void ShutdownVulkan(unique_backend_renderer_ptr &backend) {
   vkDestroyInstance(context.instance, context.allocator);
 }
 
-void OnResizeVulkan(unique_backend_renderer_ptr &backend, ushort width,
-                    ushort height) {}
+void OnResizeVulkan(core::memory::unique_renderer_ptr<RendererBackend> &backend,
+                    ushort width, ushort height) {}
 
-bool BeginFrameVulkan(unique_backend_renderer_ptr &backend, float32 deltaTime) {
+bool BeginFrameVulkan(
+    core::memory::unique_renderer_ptr<RendererBackend> &backend,
+    float32 deltaTime) {
   return FeTrue;
 }
 
-bool EndFrameVulkan(unique_backend_renderer_ptr &backend, float32 deltaTime) {
+bool EndFrameVulkan(core::memory::unique_renderer_ptr<RendererBackend> &backend,
+                    float32 deltaTime) {
   return FeTrue;
 }
 

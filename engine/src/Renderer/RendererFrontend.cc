@@ -14,7 +14,7 @@ FrontendRenderer::FrontendRenderer(const string &applicationName,
       reinterpret_cast<RendererBackend *>(core::memory::MemoryManager::Allocate(
           sizeof(RendererBackend), core::memory::MEMORY_TAG_RENDERER));
 
-  _backend = unique_backend_renderer_ptr(
+  _backend = core::memory::unique_renderer_ptr<RendererBackend>(
       allocatedMemory,
       core::memory::StatelessCustomDeleter<
           RendererBackend, 1, core::memory::MEMORY_TAG_RENDERER>());

@@ -1,12 +1,13 @@
 #include "RendererBackend.hpp"
+#include "Core/FeMemory.hpp"
 #include "Vulkan/VulkanBackend.hpp"
 
 namespace flatearth {
 namespace renderer {
 
-bool CreateBackend(RendererBackendType type,
-                   struct platform::PlatformState *platState,
-                   unique_backend_renderer_ptr &outRenderer) {
+bool CreateBackend(
+    RendererBackendType type, struct platform::PlatformState *platState,
+    core::memory::unique_renderer_ptr<RendererBackend> &outRenderer) {
   outRenderer->platState = platState;
 
   if (type == RENDERER_BACKEND_TYPE_VULKAN) {
@@ -21,7 +22,8 @@ bool CreateBackend(RendererBackendType type,
   return FeFalse;
 }
 
-void DestroyBackend(unique_backend_renderer_ptr &renderer) {
+void DestroyBackend(
+    core::memory::unique_renderer_ptr<RendererBackend> &renderer) {
   renderer->Initialize = nullptr;
   renderer->Shutdown = nullptr;
   renderer->OnResize = nullptr;

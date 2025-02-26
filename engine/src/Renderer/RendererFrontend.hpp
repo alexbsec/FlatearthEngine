@@ -2,6 +2,7 @@
 #define _FLATEARHT_ENGINE_RENDERER_FRONTEND_HPP
 
 #include "RendererTypes.inl"
+#include "Core/FeMemory.hpp"
 
 namespace flatearth {
 namespace renderer {
@@ -20,7 +21,7 @@ public:
   void OnResize(ushort width, ushort height);
 
 private:
-  unique_backend_renderer_ptr _backend;
+  core::memory::unique_renderer_ptr<RendererBackend> _backend;
 };
 
 } // namespace renderer
