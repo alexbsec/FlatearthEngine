@@ -14,6 +14,8 @@ void DestroyDevice(Context *context);
 void QuerySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface,
                            SwapchainSupportInfo *outSwapchainInfo);
 
+bool DetectDeviceDepthFormat(Device *device);
+
 } // namespace vulkan
 } // namespace renderer
 } // namespace flatearth

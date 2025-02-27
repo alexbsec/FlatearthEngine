@@ -2,7 +2,6 @@
 #include "Core/FeMemory.hpp"
 #include "Core/Logger.hpp"
 #include "Renderer/Vulkan/VulkanDevice.hpp"
-#include <utility>
 #include <vulkan/vulkan_core.h>
 
 namespace flatearth {
@@ -219,7 +218,13 @@ void Create(Context *context, uint32 width, uint32 height,
                                context->allocator, &outSwapchain->views[i]));
   }
 
-  // TODO: depth features and create image 
+  // Depth features
+  if (!DetectDeviceDepthFormat(&context->device)) {
+    context->device.depthFormat = VK_FORMAT_UNDEFINED;
+    FFATAL("vulkan::Create(): Failed to find a supported depth format");
+  }
+
+  // TODO: Create depth image and its view
 }
 
 void Destroy(Context *context, Swapchain *swapchain) {}

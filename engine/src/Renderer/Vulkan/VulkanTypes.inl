@@ -30,6 +30,8 @@ struct Device {
   sint32 presentQueueIndex;
   sint32 transferQueueIndex;
 
+  VkFormat depthFormat;
+
   VkQueue graphicsQueue;
   VkQueue presentQueue;
   VkQueue transferQueue;

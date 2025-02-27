@@ -218,6 +218,29 @@ void QuerySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface,
   }
 }
 
+bool DetectDeviceDepthFormat(Device *device) {
+  const uint64 candidateCount = 3;
+  VkFormat candidates[3] = {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
+                            VK_FORMAT_D24_UNORM_S8_UINT};
+
+  uint32 flags = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+  for (uint64 i = 0; i < candidateCount; i++) {
+    VkFormatProperties props;
+    vkGetPhysicalDeviceFormatProperties(device->physicalDevice, candidates[i],
+                                        &props);
+
+    if ((props.linearTilingFeatures & flags) == flags) {
+      device->depthFormat = candidates[i];
+      return FeTrue;
+    } else if ((props.optimalTilingFeatures & flags) == flags) {
+      device->depthFormat = candidates[i];
+      return FeTrue;
+    }
+  }
+
+  return FeFalse;
+}
+
 bool SelectPhysicalDevice(Context *context) {
   uint32 physicalDeviceCount = 0;
   VK_CHECK(vkEnumeratePhysicalDevices(context->instance, &physicalDeviceCount,
