@@ -78,6 +78,10 @@ void PresentSwapchain(Context *context, Swapchain *swapchain,
   }
 }
 
+void Create(Context *context, uint32 width, uint32 height, Swapchain *swapchain) {}
+
+void Destroy(Context *context, Swapchain *swapchain) {}
+
 } // namespace vulkan
 } // namespace renderer
 } // namespace flatearth
