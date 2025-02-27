@@ -39,6 +39,15 @@ struct Device {
   VkPhysicalDeviceMemoryProperties memory;
 };
 
+struct Swapchain {
+  VkSurfaceFormatKHR imageFormat;
+  uchar maxFrames;
+  VkSwapchainKHR handle;
+  uint32 imageCount;
+  core::memory::unique_renderer_ptr<VkImage> images;
+  core::memory::unique_renderer_ptr<VkImageView> views;
+};
+
 struct Context {
   VkInstance instance;
   VkAllocationCallbacks *allocator;
