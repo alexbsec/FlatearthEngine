@@ -49,6 +49,9 @@ struct Swapchain {
 };
 
 struct Context {
+  uint32 framebufferWidth;
+  uint32 framebufferHeight;
+
   VkInstance instance;
   VkAllocationCallbacks *allocator;
   VkSurfaceKHR surface;
