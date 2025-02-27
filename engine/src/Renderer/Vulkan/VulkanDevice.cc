@@ -149,9 +149,26 @@ void DestroyDevice(Context *context) {
   // Releasing resources on physical device
   FINFO("DestroyDevice(): Releasing physical device resources...");
   context->device.physicalDevice = nullptr;
-  // No need to free resources because they are smart pointers
-  context->device.swapchainSupport.formatCount = 0;
-  context->device.swapchainSupport.presentModeCount = 0;
+
+  if (context->device.swapchainSupport.formats) {
+    core::memory::MemoryManager::Free(
+        context->device.swapchainSupport.formats,
+        sizeof(VkSurfaceFormatKHR) *
+            context->device.swapchainSupport.formatCount,
+        core::memory::MEMORY_TAG_RENDERER);
+    context->device.swapchainSupport.formats = nullptr;
+    context->device.swapchainSupport.formatCount = 0;
+  }
+
+  if (context->device.swapchainSupport.presentMode) {
+    core::memory::MemoryManager::Free(
+        context->device.swapchainSupport.formats,
+        sizeof(VkPresentModeKHR) *
+            context->device.swapchainSupport.presentModeCount,
+        core::memory::MEMORY_TAG_RENDERER);
+    context->device.swapchainSupport.presentMode = nullptr;
+    context->device.swapchainSupport.presentModeCount = 0;
+  }
 
   core::memory::MemoryManager::ZeroMemory(
       &context->device.swapchainSupport.capabilities,
@@ -175,16 +192,13 @@ void QuerySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface,
   if (outSwapchainInfo->formatCount != 0) {
     if (!outSwapchainInfo->formats) {
       outSwapchainInfo->formats =
-          core::memory::unique_renderer_ptr<VkSurfaceFormatKHR>(
-              static_cast<VkSurfaceFormatKHR *>(
-                  core::memory::MemoryManager::Allocate(
-                      sizeof(VkSurfaceFormatKHR) *
-                          outSwapchainInfo->formatCount,
-                      core::memory::MEMORY_TAG_RENDERER)));
+          (VkSurfaceFormatKHR *)core::memory::MemoryManager::Allocate(
+              sizeof(VkSurfaceFormatKHR) * outSwapchainInfo->formatCount,
+              core::memory::MEMORY_TAG_RENDERER);
     }
     VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(
         device, surface, &outSwapchainInfo->formatCount,
-        outSwapchainInfo->formats.get()));
+        outSwapchainInfo->formats));
   }
 
   // Present mode
@@ -192,15 +206,15 @@ void QuerySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface,
       device, surface, &outSwapchainInfo->presentModeCount, nullptr));
   if (outSwapchainInfo->presentModeCount != 0) {
     if (!outSwapchainInfo->presentMode) {
-      outSwapchainInfo
-          ->presentMode = core::memory::unique_renderer_ptr<VkPresentModeKHR>(
-          static_cast<VkPresentModeKHR *>(core::memory::MemoryManager::Allocate(
+      outSwapchainInfo->presentMode =
+          (VkPresentModeKHR *)core::memory::MemoryManager::Allocate(
               sizeof(VkPresentModeKHR) * outSwapchainInfo->presentModeCount,
-              core::memory::MEMORY_TAG_RENDERER)));
+              core::memory::MEMORY_TAG_RENDERER);
     }
+
     VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(
         device, surface, &outSwapchainInfo->presentModeCount,
-        outSwapchainInfo->presentMode.get()));
+        outSwapchainInfo->presentMode));
   }
 }
 

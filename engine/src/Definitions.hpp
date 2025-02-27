@@ -8,9 +8,7 @@ using unique_void_ptr = std::unique_ptr<void, void (*)(void const *)>;
 
 namespace flatearth {
 namespace core {
-namespace memory {
-
-} // namespace memory
+namespace memory {} // namespace memory
 } // namespace core
 } // namespace flatearth
 
@@ -100,5 +98,8 @@ STATIC_ASSERT(sizeof(float64) == 8, "Expected float64 to be 8 bytes");
 // Set to false if in release
 #define _DEBUG FeTrue
 #endif
+
+#define FCLAMP(value, min, max)                                                \
+  (value <= min) ? min : (value >= max) ? max : value;
 
 #endif // _FLATEARTH_ENGINE_DEFINITIONS_HP

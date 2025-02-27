@@ -17,9 +17,9 @@ namespace vulkan {
 struct SwapchainSupportInfo {
   VkSurfaceCapabilitiesKHR capabilities;
   uint32 formatCount;
-  core::memory::unique_renderer_ptr<VkSurfaceFormatKHR> formats;
+  VkSurfaceFormatKHR *formats;
   uint32 presentModeCount;
-  core::memory::unique_renderer_ptr<VkPresentModeKHR> presentMode;
+  VkPresentModeKHR *presentMode;
 };
 
 struct Device {
@@ -44,13 +44,15 @@ struct Swapchain {
   uchar maxFrames;
   VkSwapchainKHR handle;
   uint32 imageCount;
-  core::memory::unique_renderer_ptr<VkImage> images;
-  core::memory::unique_renderer_ptr<VkImageView> views;
+  VkImage *images;
+  VkImageView *views;
 };
 
 struct Context {
   uint32 framebufferWidth;
   uint32 framebufferHeight;
+  uint32 currentFrame;
+  uint32 imageIndex;
 
   VkInstance instance;
   VkAllocationCallbacks *allocator;
