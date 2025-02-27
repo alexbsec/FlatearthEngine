@@ -2,6 +2,7 @@
 #include "Containers/DArray.hpp"
 #include "Core/Logger.hpp"
 #include "Renderer/Vulkan/VulkanPlatform.hpp"
+#include "Renderer/Vulkan/VulkanSwapchain.hpp"
 #include "VulkanDevice.hpp"
 #include "VulkanTypes.inl"
 #include <vulkan/vulkan_core.h>
@@ -139,6 +140,12 @@ bool InitializeVulkan(
     return FeFalse;
   }
 
+  // Swapchain creation
+  FDEBUG("InitializeVulkan(): Creating swapchain...");
+  CreateSwapchain(&context, context.framebufferWidth, context.framebufferHeight,
+                  &context.swapchain);
+  FINFO("IntializeVulkan(): Swapchain created successfully");
+
   FINFO("InitializeVulkan(): Vulkan renderer successfully initialized");
 
   return FeTrue;
@@ -146,6 +153,9 @@ bool InitializeVulkan(
 
 void ShutdownVulkan(
     core::memory::unique_renderer_ptr<RendererBackend> &backend) {
+  FDEBUG("ShutdownVulkan(): Destroying swapchain...");
+  DestroySwapchain(&context, &context.swapchain);
+
   FDEBUG("ShutdownVulkan(): Destroying/releasing device info...");
   DestroyDevice(&context);
 

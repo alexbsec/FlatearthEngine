@@ -2,6 +2,7 @@
 #include "Core/FeMemory.hpp"
 #include "Core/Logger.hpp"
 #include "Renderer/Vulkan/VulkanDevice.hpp"
+#include "Renderer/Vulkan/VulkanImage.hpp"
 #include <vulkan/vulkan_core.h>
 
 namespace flatearth {
@@ -224,11 +225,31 @@ void Create(Context *context, uint32 width, uint32 height,
     FFATAL("vulkan::Create(): Failed to find a supported depth format");
   }
 
-  // TODO: Create depth image and its view
+  // Create depth image and its view
+  CreateImage(context, VK_IMAGE_TYPE_2D, swapchainExtent.width,
+              swapchainExtent.height, context->device.depthFormat,
+              VK_IMAGE_TILING_OPTIMAL,
+              VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, FeTrue,
+              VK_IMAGE_ASPECT_DEPTH_BIT, &outSwapchain->depthAttachment);
+
+  FINFO("Create(): Image creation successful");
 }
 
-void Destroy(Context *context, Swapchain *swapchain) {}
+void Destroy(Context *context, Swapchain *swapchain) {
+  DestroyImage(context, &swapchain->depthAttachment);
+
+  // Only destroys the views, not the image. Those are destroyed by the
+  // swapchain
+  for (uint32 i = 0; i < swapchain->imageCount; i++) {
+    vkDestroyImageView(context->device.logicalDevice, swapchain->views[i],
+                       context->allocator);
+  }
+
+  vkDestroySwapchainKHR(context->device.logicalDevice, swapchain->handle,
+                        context->allocator);
+}
 
 } // namespace vulkan
 } // namespace renderer
-} // namespace flatearth
+} // namespace flateart

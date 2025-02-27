@@ -3,6 +3,7 @@
 
 #include "Core/Asserts.hpp"
 #include "Core/FeMemory.hpp"
+#include "Core/Logger.hpp"
 #include "Definitions.hpp"
 
 #include <vulkan/vulkan.h>
@@ -41,6 +42,14 @@ struct Device {
   VkPhysicalDeviceMemoryProperties memory;
 };
 
+struct Image {
+  VkImage handle;
+  VkDeviceMemory memory;
+  VkImageView view;
+  uint32 width;
+  uint32 height;
+};
+
 struct Swapchain {
   VkSurfaceFormatKHR imageFormat;
   uchar maxFrames;
@@ -48,6 +57,7 @@ struct Swapchain {
   uint32 imageCount;
   VkImage *images;
   VkImageView *views;
+  Image depthAttachment;
 };
 
 struct Context {
@@ -60,8 +70,26 @@ struct Context {
   VkAllocationCallbacks *allocator;
   VkSurfaceKHR surface;
   Device device;
+  Swapchain swapchain;
+
+  sint32 FindMemoryIndex(uint32 typeFilter, uint32 propertyFlags) {
+    VkPhysicalDeviceMemoryProperties memoryProps;
+    vkGetPhysicalDeviceMemoryProperties(device.physicalDevice, &memoryProps);
+
+    for (uint32 i = 0; i < memoryProps.memoryTypeCount; i++) {
+      if (typeFilter & (1 << i) &&
+          (memoryProps.memoryTypes[i].propertyFlags & propertyFlags)) {
+        return i;
+      }
+    }
+
+    FWARN("Context::FindMemoryIndex(): Unable to find memory type");
+    return -1;
+  }
+
 #if defined(_DEBUG)
   VkDebugUtilsMessengerEXT debugMessenger;
+
 #endif
 };
 
