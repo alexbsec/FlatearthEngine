@@ -50,6 +50,7 @@ struct Image {
   uint32 height;
 };
 
+
 struct Swapchain {
   VkSurfaceFormatKHR imageFormat;
   uchar maxFrames;
@@ -58,6 +59,42 @@ struct Swapchain {
   VkImage *images;
   VkImageView *views;
   Image depthAttachment;
+};
+
+enum CommandBufferState {
+  CMD_BUFFER_STATE_READY,
+  CMD_BUFFER_STATE_RECORDING,
+  CMD_BUFFER_STATE_IN_RENDER_PASS,
+  CMD_BUFFER_STATE_RECORDING_ENDED,
+  CMD_BUFFER_STATE_SUBMITTED,
+  CMD_BUFFER_STATE_NOT_ALLOCATED,
+};
+
+struct CommandBuffer {
+  VkCommandBuffer handle;
+  CommandBufferState state;
+};
+
+enum RenderPassState {
+  READY,
+  RECORDING,
+  IN_RENDER_PASS,
+  RECORDING_ENDED,
+  SUBMITED,
+  NOT_ALLOCATED
+};
+
+struct RenderPass {
+  VkRenderPass handle;
+  // Area of the image & offsets
+  float32 x, y, width, height;
+  // Color of the image
+  float32 r, g, b, a;
+
+  float32 depth;
+  uint32 stencil;
+
+  RenderPassState state;
 };
 
 struct Context {
