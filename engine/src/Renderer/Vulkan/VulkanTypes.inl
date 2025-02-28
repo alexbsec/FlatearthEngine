@@ -108,6 +108,7 @@ struct Context {
   VkSurfaceKHR surface;
   Device device;
   Swapchain swapchain;
+  RenderPass mainRenderPass;
 
   sint32 FindMemoryIndex(uint32 typeFilter, uint32 propertyFlags) {
     VkPhysicalDeviceMemoryProperties memoryProps;

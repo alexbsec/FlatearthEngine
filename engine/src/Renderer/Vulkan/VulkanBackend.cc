@@ -1,9 +1,10 @@
 #include "VulkanBackend.hpp"
 #include "Containers/DArray.hpp"
 #include "Core/Logger.hpp"
-#include "Renderer/Vulkan/VulkanPlatform.hpp"
-#include "Renderer/Vulkan/VulkanSwapchain.hpp"
 #include "VulkanDevice.hpp"
+#include "VulkanPlatform.hpp"
+#include "VulkanRenderpass.hpp"
+#include "VulkanSwapchain.hpp"
 #include "VulkanTypes.inl"
 #include <vulkan/vulkan_core.h>
 
@@ -146,6 +147,13 @@ bool InitializeVulkan(
                   &context.swapchain);
   FINFO("IntializeVulkan(): Swapchain created successfully");
 
+  // Render pass creation
+  FDEBUG("InitializeVulkan(): Creationg render pass...");
+  CreateRenderPass(&context, &context.mainRenderPass, 0, 0,
+                   context.framebufferWidth, context.framebufferHeight, 0.0f,
+                   0.0f, 0.3f, 1.0f, 1.0f, 0);
+  FINFO("InitializeVulkan(): Render pass created successfully");
+
   FINFO("InitializeVulkan(): Vulkan renderer successfully initialized");
 
   return FeTrue;
@@ -153,6 +161,9 @@ bool InitializeVulkan(
 
 void ShutdownVulkan(
     core::memory::unique_renderer_ptr<RendererBackend> &backend) {
+  FDEBUG("ShutdownVulkan(): Destroying render pass...");
+  DestroyRenderPass(&context, &context.mainRenderPass);
+
   FDEBUG("ShutdownVulkan(): Destroying swapchain...");
   DestroySwapchain(&context, &context.swapchain);
 

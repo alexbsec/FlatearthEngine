@@ -18,6 +18,8 @@ void DestroyRenderPass(Context *context, RenderPass *renderPass);
 void BeginRenderPass(CommandBuffer *cmdBuffer, RenderPass *renderPass,
                      VkFramebuffer frameBuffer);
 
+void EndRenderPass(CommandBuffer *cmdBuffer, RenderPass *renderPass);
+
 } // namespace vulkan
 } // namespace renderer
 } // namespace flatearth
