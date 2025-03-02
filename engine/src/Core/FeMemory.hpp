@@ -78,16 +78,16 @@ struct StatelessCustomDeleter {
   };
 };
 
-template <typename T> class StatefulCustomDeleter {
+template <typename T>
+class StatefulCustomDeleter {
 public:
   StatefulCustomDeleter(uint64 allocatedSize, MemoryTag tag)
       : _allocatedSize(allocatedSize), _tag(tag) {}
 
-  // This operator will be called by the unique_ptr when it is time to free
-  // memory.
-  void operator()(T *ptr) const {
+  void operator()(T* ptr) const {
     if (ptr) {
-      MemoryManager::Free(ptr, _allocatedSize, _tag);
+      ptr->~T(); 
+      core::memory::MemoryManager::Free(ptr, _allocatedSize, _tag);
     }
   }
 
@@ -96,9 +96,14 @@ private:
   MemoryTag _tag;
 };
 
+
 template <typename T>
 using unique_renderer_ptr =
     std::unique_ptr<T, StatelessCustomDeleter<T, 1, MEMORY_TAG_RENDERER>>;
+
+template <typename T>
+using unique_stateful_renderer_ptr =
+    std::unique_ptr<T, core::memory::StatefulCustomDeleter<T>>;
 
 } // namespace memory
 } // namespace core
