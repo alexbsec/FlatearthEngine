@@ -6,6 +6,7 @@ often treating 2D rendering as an afterthought. While many industry-standard gam
 2D rendering, a dedicated 2D engine can offer simplicity, performance, and ease
 of use for developers focusing on 2D games.
 
+
 ## Platform Support 
 
 The engine is going to be primarily supported by Linux, but ultimately it will
