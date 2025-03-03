@@ -2,7 +2,6 @@
 #define _FLATEARTH_ENGINE_VULKAN_TYPES_INL
 
 #include "Core/Asserts.hpp"
-#include "Core/FeMemory.hpp"
 #include "Core/Logger.hpp"
 #include "Definitions.hpp"
 

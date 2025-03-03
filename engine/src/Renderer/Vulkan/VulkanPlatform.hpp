@@ -2,7 +2,6 @@
 #define _FLATEARTH_ENGINE_VULKAN_PLATFORM_HPP
 
 #include "Containers/DArray.hpp"
-#include "Definitions.hpp"
 #include "VulkanTypes.inl"
 
 namespace flatearth {

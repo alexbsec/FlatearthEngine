@@ -81,6 +81,8 @@ struct StatelessCustomDeleter {
 template <typename T>
 class StatefulCustomDeleter {
 public:
+  StatefulCustomDeleter() = default;
+
   StatefulCustomDeleter(uint64 allocatedSize, MemoryTag tag)
       : _allocatedSize(allocatedSize), _tag(tag) {}
 
@@ -92,8 +94,8 @@ public:
   }
 
 private:
-  uint64 _allocatedSize;
-  MemoryTag _tag;
+  uint64 _allocatedSize = 0;
+  MemoryTag _tag = MEMORY_TAG_UNKNOWN;
 };
 
 

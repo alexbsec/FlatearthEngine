@@ -16,10 +16,12 @@ using unique_backend_renderer_ptr =
                     core::memory::StatelessCustomDeleter<
                         RendererBackend, 1, core::memory::MEMORY_TAG_RENDERER>>;
 
+constexpr int MAX_BACKENDS = 1;
+
 typedef enum RendererBackendType {
-  RENDERER_BACKEND_TYPE_VULKAN,
-  RENDERER_BACKEND_TYPE_OPENGL,
-  RENDERER_BACKEND_TYPE_DIRECTX,
+  RENDERER_BACKEND_TYPE_VULKAN = 0,
+  RENDERER_BACKEND_TYPE_OPENGL = 1,
+  RENDERER_BACKEND_TYPE_DIRECTX = 2,
 } RendererBackendType;
 
 struct RendererBackend {
@@ -46,6 +48,24 @@ struct RendererBackend {
 
 struct RenderPacket {
   float32 deltaTime;
+};
+
+class IRendererBackend {
+public:
+  virtual ~IRendererBackend() = default;
+
+  virtual bool Initialize(const char *applicationName,
+                          struct platform::PlatformState *platState) = 0;
+
+  virtual void Shutdown() = 0;
+  virtual void OnResize(ushort width, ushort height) = 0;
+  virtual bool BeginFrame(float32 deltaTime) = 0;
+  virtual bool EndFrame(float32 deltaTime) = 0;
+};
+
+struct BackendArray {
+  core::memory::unique_stateful_renderer_ptr<IRendererBackend>
+      backends[MAX_BACKENDS];
 };
 
 } // namespace renderer

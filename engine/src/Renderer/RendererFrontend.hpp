@@ -1,8 +1,8 @@
 #ifndef _FLATEARHT_ENGINE_RENDERER_FRONTEND_HPP
 #define _FLATEARHT_ENGINE_RENDERER_FRONTEND_HPP
 
-#include "RendererTypes.inl"
 #include "Core/FeMemory.hpp"
+#include "RendererTypes.inl"
 
 namespace flatearth {
 namespace renderer {
@@ -21,7 +21,14 @@ public:
   void OnResize(ushort width, ushort height);
 
 private:
-  core::memory::unique_renderer_ptr<RendererBackend> _backend;
+  static void
+  CreateBackends(struct platform::PlatformState *platState,
+                 core::memory::unique_stateful_renderer_ptr<IRendererBackend> (
+                     &backends)[MAX_BACKENDS]);
+
+  core::memory::unique_stateful_renderer_ptr<IRendererBackend>
+      _backends[MAX_BACKENDS];
+  IRendererBackend *_activeBackend;
 };
 
 } // namespace renderer

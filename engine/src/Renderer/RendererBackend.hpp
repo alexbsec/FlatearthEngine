@@ -7,6 +7,10 @@
 namespace flatearth {
 namespace renderer {
 
+void CreateBackend2(
+    core::memory::unique_stateful_renderer_ptr<IRendererBackend> *backends,
+    struct platform::PlatformState *platState);
+
 bool CreateBackend(
     RendererBackendType type, struct platform::PlatformState *platState,
     core::memory::unique_renderer_ptr<RendererBackend> &outRenderer);
