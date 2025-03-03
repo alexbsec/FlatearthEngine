@@ -162,30 +162,6 @@ bool VulkanBackend::Initialize(const char *applicationName,
   return FeTrue;
 }
 
-// Vulkan Callbakcs
-VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, uint32 messageTypes,
-    const VkDebugUtilsMessengerCallbackDataEXT *callbackData, void *userData) {
-  switch (messageSeverity) {
-  default:
-  case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-    FERROR(callbackData->pMessage);
-    break;
-  case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-    FWARN(callbackData->pMessage);
-    break;
-  case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-    FINFO(callbackData->pMessage);
-    break;
-  case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-    FTRACE(callbackData->pMessage);
-    break;
-  }
-
-  // This is a must
-  return VK_FALSE;
-}
-
 void VulkanBackend::OnResize(ushort width, ushort height) {
   // TODO: implement
 }
@@ -1157,6 +1133,32 @@ bool VulkanBackend::PhysicalDeviceMeetsRequirements(
   // Reaching here means we did not find any device at all
   return FeFalse;
 }
+
+/****** VULKAN CALLBACKS ******/
+
+VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, uint32 messageTypes,
+    const VkDebugUtilsMessengerCallbackDataEXT *callbackData, void *userData) {
+  switch (messageSeverity) {
+  default:
+  case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+    FERROR(callbackData->pMessage);
+    break;
+  case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+    FWARN(callbackData->pMessage);
+    break;
+  case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+    FINFO(callbackData->pMessage);
+    break;
+  case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+    FTRACE(callbackData->pMessage);
+    break;
+  }
+
+  // This is a must
+  return VK_FALSE;
+}
+
 
 } // namespace vulkan
 } // namespace renderer
