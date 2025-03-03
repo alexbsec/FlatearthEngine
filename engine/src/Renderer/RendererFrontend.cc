@@ -10,30 +10,6 @@
 namespace flatearth {
 namespace renderer {
 
-static core::memory::unique_stateful_renderer_ptr<IRendererBackend>
-BackendCreate(const std::string &applicationName,
-              struct platform::PlatformState *platState) {
-  // Allocate raw memory
-  void *allocatedMemory = core::memory::MemoryManager::Allocate(
-      sizeof(vulkan::VulkanBackend), core::memory::MEMORY_TAG_RENDERER);
-
-  if (!allocatedMemory) {
-    throw std::runtime_error("Failed to allocate memory for VulkanBackend");
-  }
-
-  // Construct the VulkanBackend object in allocated memory
-  IRendererBackend *instance = new (allocatedMemory) vulkan::VulkanBackend();
-
-  // Wrap in unique_ptr with custom deleter
-  auto backendPtr =
-      core::memory::unique_stateful_renderer_ptr<IRendererBackend>(
-          instance, core::memory::StatefulCustomDeleter<IRendererBackend>(
-                        sizeof(vulkan::VulkanBackend),
-                        core::memory::MEMORY_TAG_RENDERER));
-
-  return backendPtr;
-}
-
 FrontendRenderer::FrontendRenderer(const string &applicationName,
                                    struct platform::PlatformState *platState) {
 
@@ -47,6 +23,8 @@ FrontendRenderer::FrontendRenderer(const string &applicationName,
     throw std::runtime_error("No valid renderer backend could be initialized.");
   }
 
+  _activeBackend->SetFrameBuffer(0);
+
   // Initialize the backend
   if (!_activeBackend->Initialize(applicationName.c_str(), platState)) {
     FFATAL(
@@ -55,18 +33,6 @@ FrontendRenderer::FrontendRenderer(const string &applicationName,
   }
 
   FINFO("FrontendRenderer::FrontendRenderer(): Successfully initialized.");
-
-  /* OLD
-  CreateBackend(RENDERER_BACKEND_TYPE_VULKAN, platState, _backend);
-  _backend->frameNumber = 0;
-
-  if (!_backend->Initialize(_backend, applicationName.c_str(), platState)) {
-    FFATAL("FrontendRenderer::FrontendRenderer(): backend renderer failed to "
-           "initialize.");
-    throw std::runtime_error(
-        "Failed to initialize backend renderer. Implementation missing?");
-  }
-  */
 }
 
 FrontendRenderer::~FrontendRenderer() {

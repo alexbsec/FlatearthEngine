@@ -33,7 +33,6 @@ public:
 
   bool Initialize(const char *applicationName,
                   struct platform::PlatformState *platState) override;
-  void Shutdown() override;
   void OnResize(ushort width, ushort height) override;
   bool BeginFrame(float32 deltaTime) override;
   bool EndFrame(float32 deltaTime) override;
@@ -77,11 +76,12 @@ public:
   void RenderPassEnd(CommandBuffer *cmdBuffer, RenderPass *renderPass);
 
   // Setters & getters
-  void SetFrameBuffer(uint64 frameBuffer);
-  uint64 GetFrameBuffer() const;
+  void SetFrameBuffer(uint64 frameBuffer) override;
+  uint64 GetFrameBuffer() const override;
   const Context &GetContext() const;
 
 private:
+  void Shutdown();
   void SwpCreate(uint32 width, uint32 height, Swapchain *outSwapchain);
   void SwpDestroy(Swapchain *swapchain);
 

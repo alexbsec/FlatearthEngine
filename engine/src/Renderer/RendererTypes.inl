@@ -57,10 +57,12 @@ public:
   virtual bool Initialize(const char *applicationName,
                           struct platform::PlatformState *platState) = 0;
 
-  virtual void Shutdown() = 0;
   virtual void OnResize(ushort width, ushort height) = 0;
   virtual bool BeginFrame(float32 deltaTime) = 0;
   virtual bool EndFrame(float32 deltaTime) = 0;
+
+  virtual void SetFrameBuffer(uint64 frameBuffer) = 0;
+  virtual uint64 GetFrameBuffer() const = 0;
 };
 
 } // namespace renderer

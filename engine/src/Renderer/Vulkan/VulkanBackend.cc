@@ -16,9 +16,9 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, uint32 messageTypes,
     const VkDebugUtilsMessengerCallbackDataEXT *callbackData, void *userData);
 
-VulkanBackend::~VulkanBackend() { 
+VulkanBackend::~VulkanBackend() {
   FINFO("VulkanBackend::~VulkanBackend(): shutting down Vulkan backend...");
-  Shutdown(); 
+  Shutdown();
 }
 
 bool VulkanBackend::Initialize(const char *applicationName,
@@ -152,9 +152,8 @@ bool VulkanBackend::Initialize(const char *applicationName,
 
   // Render pass creation
   FDEBUG("VulkanBackend::Initialize(): Creationg render pass...");
-  RenderPassCreate(&_context.mainRenderPass, 0, 0,
-                   _context.framebufferWidth, _context.framebufferHeight, 0.0f,
-                   0.0f, 0.3f, 1.0f, 1.0f, 0);
+  RenderPassCreate(&_context.mainRenderPass, 0, 0, _context.framebufferWidth,
+                   _context.framebufferHeight, 0.0f, 0.0f, 0.3f, 1.0f, 1.0f, 0);
   FINFO("VulkanBackend::Initialize(): Render pass created successfully");
 
   FINFO(
@@ -185,25 +184,6 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 
   // This is a must
   return VK_FALSE;
-}
-
-void VulkanBackend::Shutdown() {
-  FDEBUG("VulkanBackend::Shutdown(): Destroying render pass...");
-  RenderPassDestroy(&_context.mainRenderPass);
-
-  FDEBUG("VulkanBackend::Shutdown(): Destroying swapchain...");
-  SwapchainDestroy(&_context.swapchain);
-
-  FDEBUG("VulkanBackend::Shutdown(): Destroying/releasing device info...");
-  DeviceDestroy();
-
-  FDEBUG("VulkanBackend::Shutdown(): Destroying Vulkan debugger...");
-  if (_context.debugMessenger) {
-    PFN_vkDestroyDebugUtilsMessengerEXT func =
-        (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
-            _context.instance, "vkDestroyDebugUtilsMessengerEXT");
-    func(_context.instance, _context.debugMessenger, _context.allocator);
-  }
 }
 
 void VulkanBackend::OnResize(ushort width, ushort height) {
@@ -735,22 +715,39 @@ void VulkanBackend::SetFrameBuffer(uint64 frameBuffer) {
   _frameBuffer = frameBuffer;
 }
 
-uint64 VulkanBackend::GetFrameBuffer() const {
-  return _frameBuffer;
-}
+uint64 VulkanBackend::GetFrameBuffer() const { return _frameBuffer; }
 
-const Context &VulkanBackend::GetContext() const {
-  return _context;
-}
+const Context &VulkanBackend::GetContext() const { return _context; }
 
 /****************************************************************/
 /**************        PRIVATE MEHTODS         ******************/
 /****************************************************************/
 
+/****** SHUTDOWN LOGIC ******/
+
+void VulkanBackend::Shutdown() {
+  FDEBUG("VulkanBackend::Shutdown(): Destroying render pass...");
+  RenderPassDestroy(&_context.mainRenderPass);
+
+  FDEBUG("VulkanBackend::Shutdown(): Destroying swapchain...");
+  SwapchainDestroy(&_context.swapchain);
+
+  FDEBUG("VulkanBackend::Shutdown(): Destroying/releasing device info...");
+  DeviceDestroy();
+
+  FDEBUG("VulkanBackend::Shutdown(): Destroying Vulkan debugger...");
+  if (_context.debugMessenger) {
+    PFN_vkDestroyDebugUtilsMessengerEXT func =
+        (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+            _context.instance, "vkDestroyDebugUtilsMessengerEXT");
+    func(_context.instance, _context.debugMessenger, _context.allocator);
+  }
+}
+
 /****** SWAPCHAIN LOGIC IMPLEMENTATION ******/
 
 void VulkanBackend::SwpCreate(uint32 width, uint32 height,
-                                Swapchain *outSwapchain) {
+                              Swapchain *outSwapchain) {
   VkExtent2D swapchainExtent = {width, height};
   outSwapchain->maxFrames = 2;
 
@@ -1023,12 +1020,12 @@ bool VulkanBackend::SelectPhysicalDevice() {
 }
 
 bool VulkanBackend::PhysicalDeviceMeetsRequirements(
-      VkPhysicalDevice device, VkSurfaceKHR surface,
-      const VkPhysicalDeviceProperties *properties,
-      const VkPhysicalDeviceFeatures *features,
-      const PhysicalDeviceRequirements *requirements,
-      PhysicalDeviceQueueFamilyInfo *outQueueInfo,
-      SwapchainSupportInfo *outSwapchainInfo) {
+    VkPhysicalDevice device, VkSurfaceKHR surface,
+    const VkPhysicalDeviceProperties *properties,
+    const VkPhysicalDeviceFeatures *features,
+    const PhysicalDeviceRequirements *requirements,
+    PhysicalDeviceQueueFamilyInfo *outQueueInfo,
+    SwapchainSupportInfo *outSwapchainInfo) {
   // Initialize them at -1 saying it does not meet requirements
   outQueueInfo->graphicsFamilyIndex = -1;
   outQueueInfo->computeFamilyIndex = -1;
