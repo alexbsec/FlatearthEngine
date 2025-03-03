@@ -16,12 +16,13 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, uint32 messageTypes,
     const VkDebugUtilsMessengerCallbackDataEXT *callbackData, void *userData);
 
+
+/******************* VULKAN BACKEND CLASS IMPLEMENTATION **********************/
+
 VulkanBackend::~VulkanBackend() {
   FINFO("VulkanBackend::~VulkanBackend(): shutting down Vulkan backend...");
   Shutdown();
 }
-
-/******************* VULKAN BACKEND CLASS IMPLEMENTATION **********************/
 
 bool VulkanBackend::Initialize(const char *applicationName,
                                struct platform::PlatformState *platState) {
