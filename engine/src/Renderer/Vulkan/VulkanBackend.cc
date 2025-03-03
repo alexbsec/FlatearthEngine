@@ -280,14 +280,14 @@ void VulkanBackend::DeviceDestroy() {
   _context.device.transferQueue = nullptr;
 
   if (_context.device.logicalDevice) {
-    FINFO("VulkanBackend::DeviceDestroy(): Destroying logical device...");
+    FDEBUG("VulkanBackend::DeviceDestroy(): Destroying logical device...");
     vkDestroyDevice(_context.device.logicalDevice, _context.allocator);
     _context.device.logicalDevice = nullptr;
-    FINFO("VulkanBackend::DeviceDestroy(): Logical device destroyed");
+    FDEBUG("VulkanBackend::DeviceDestroy(): Logical device destroyed");
   }
 
   // Releasing resources on physical device
-  FINFO("VulkanBackend::DeviceDestroy(): Releasing physical device resources...");
+  FDEBUG("VulkanBackend::DeviceDestroy(): Releasing physical device resources...");
   _context.device.physicalDevice = nullptr;
 
   if (_context.device.swapchainSupport.formats) {
