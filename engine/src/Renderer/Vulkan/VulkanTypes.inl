@@ -3,6 +3,7 @@
 
 #include "Core/Asserts.hpp"
 #include "Core/Logger.hpp"
+#include "Containers/DArray.hpp"
 #include "Definitions.hpp"
 
 #include <vulkan/vulkan.h>
@@ -29,6 +30,8 @@ struct Device {
   sint32 graphicsQueueIndex;
   sint32 presentQueueIndex;
   sint32 transferQueueIndex;
+
+  VkCommandPool graphicsCommandPool;
 
   VkFormat depthFormat;
 
@@ -108,6 +111,7 @@ struct Context {
   Device device;
   Swapchain swapchain;
   RenderPass mainRenderPass;
+  containers::DArray<CommandBuffer> graphicsCommandBuffers;
 
   sint32 FindMemoryIndex(uint32 typeFilter, uint32 propertyFlags) {
     VkPhysicalDeviceMemoryProperties memoryProps;

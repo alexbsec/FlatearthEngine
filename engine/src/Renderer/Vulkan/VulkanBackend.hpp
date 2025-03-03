@@ -75,6 +75,20 @@ public:
                        VkFramebuffer frameBuffer);
   void RenderPassEnd(CommandBuffer *cmdBuffer, RenderPass *renderPass);
 
+  // Command buffer logic
+  void CommandBufferAllocate(VkCommandPool pool, bool isPrimary,
+                             CommandBuffer *outCmdBuffer);
+  void CommandBufferFree(VkCommandPool pool, CommandBuffer *cmdBuffer);
+  void CommandBufferBegin(CommandBuffer *cmdBuffer, bool isSingleUse,
+                          bool isRenderPassContinue, bool isSimultaneousUse);
+  void CommandBufferEnd(CommandBuffer *cmdBuffer);
+  void CommandBufferUpdateSubmitted(CommandBuffer *cmdBuffer);
+  void CommandBufferReset(CommandBuffer *cmdBuffer);
+  void CommandBufferAllocateAndBeginSingleUse(VkCommandPool pool,
+                                              CommandBuffer *outCmdBuffer);
+  void CommandBufferEndSingleUse(VkCommandPool pool, CommandBuffer *cmdBuffer,
+                                 VkQueue queue);
+
   // Setters & getters
   void SetFrameBuffer(uint64 frameBuffer) override;
   uint64 GetFrameBuffer() const override;
@@ -82,6 +96,7 @@ public:
 
 private:
   void Shutdown();
+
   void SwpCreate(uint32 width, uint32 height, Swapchain *outSwapchain);
   void SwpDestroy(Swapchain *swapchain);
 
@@ -93,6 +108,8 @@ private:
       const PhysicalDeviceRequirements *requirements,
       PhysicalDeviceQueueFamilyInfo *outQueueInfo,
       SwapchainSupportInfo *outSwapchainInfo);
+
+  void CommandBuffersCreate();
 
   Context _context;
   struct platform::PlatformState *_platState;

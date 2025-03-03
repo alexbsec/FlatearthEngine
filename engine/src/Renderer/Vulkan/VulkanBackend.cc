@@ -1,7 +1,9 @@
 #include "VulkanBackend.hpp"
 #include "Containers/DArray.hpp"
 #include "Core/FeMemory.hpp"
+#include "Renderer/Vulkan/VulkanTypes.inl"
 #include "VulkanPlatform.hpp"
+#include <alloca.h>
 #include <vulkan/vulkan_core.h>
 
 namespace flatearth {
@@ -15,7 +17,6 @@ namespace vulkan {
 VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, uint32 messageTypes,
     const VkDebugUtilsMessengerCallbackDataEXT *callbackData, void *userData);
-
 
 /******************* VULKAN BACKEND CLASS IMPLEMENTATION **********************/
 
@@ -159,6 +160,10 @@ bool VulkanBackend::Initialize(const char *applicationName,
                    _context.framebufferHeight, 0.0f, 0.0f, 0.3f, 1.0f, 1.0f, 0);
   FINFO("VulkanBackend::Initialize(): Render pass created successfully");
 
+  FDEBUG("VulkanBackend::Initialize(): Creating command buffers...");
+  CommandBuffersCreate();
+  FINFO("VulkanBackend::Initialize(): Command buffers created successfully");
+
   FINFO(
       "VulkanBackend::Initialize(): Vulkan renderer successfully initialized");
 
@@ -271,6 +276,15 @@ bool VulkanBackend::DeviceCreate() {
 
   FINFO("VulkanBackend::DeviceCreate(): Queues obtained");
 
+  VkCommandPoolCreateInfo poolCreateInfo = {
+      VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
+  poolCreateInfo.queueFamilyIndex = _context.device.graphicsQueueIndex;
+  poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+  VK_CHECK(vkCreateCommandPool(_context.device.logicalDevice, &poolCreateInfo,
+                               _context.allocator,
+                               &_context.device.graphicsCommandPool));
+
+  FINFO("VulkanBackend::DeviceCreate(): Graphics command pool created");
   return FeTrue;
 }
 
@@ -278,6 +292,10 @@ void VulkanBackend::DeviceDestroy() {
   _context.device.graphicsQueue = nullptr;
   _context.device.presentQueue = nullptr;
   _context.device.transferQueue = nullptr;
+
+  FDEBUG("VulkanBackend::DeviceDestroy(): Destroying command pools...");
+  vkDestroyCommandPool(_context.device.logicalDevice,
+                       _context.device.graphicsCommandPool, _context.allocator);
 
   if (_context.device.logicalDevice) {
     FDEBUG("VulkanBackend::DeviceDestroy(): Destroying logical device...");
@@ -287,7 +305,8 @@ void VulkanBackend::DeviceDestroy() {
   }
 
   // Releasing resources on physical device
-  FDEBUG("VulkanBackend::DeviceDestroy(): Releasing physical device resources...");
+  FDEBUG(
+      "VulkanBackend::DeviceDestroy(): Releasing physical device resources...");
   _context.device.physicalDevice = nullptr;
 
   if (_context.device.swapchainSupport.formats) {
@@ -688,6 +707,96 @@ void VulkanBackend::RenderPassEnd(CommandBuffer *cmdBuffer,
   cmdBuffer->state = CMD_BUFFER_STATE_RECORDING;
 }
 
+/****** COMMAND BUFFER IMPLEMENTATION ******/
+
+void VulkanBackend::CommandBufferAllocate(VkCommandPool pool, bool isPrimary,
+                                          CommandBuffer *outCmdBuffer) {
+  // Zeros memory for this allocation
+  core::memory::MemoryManager::ZeroMemory(outCmdBuffer, sizeof(CommandBuffer));
+
+  VkCommandBufferAllocateInfo allocateInfo = {
+      VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
+  allocateInfo.commandPool = pool;
+  allocateInfo.level = isPrimary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY
+                                 : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+  allocateInfo.commandBufferCount = 1;
+  allocateInfo.pNext = nullptr;
+
+  outCmdBuffer->state = CMD_BUFFER_STATE_NOT_ALLOCATED;
+  VK_CHECK(vkAllocateCommandBuffers(_context.device.logicalDevice,
+                                    &allocateInfo, &outCmdBuffer->handle));
+  outCmdBuffer->state = CMD_BUFFER_STATE_READY;
+}
+
+void VulkanBackend::CommandBufferFree(VkCommandPool pool,
+                                      CommandBuffer *cmdBuffer) {
+  constexpr uint32 CMD_BUFFER_COUNT = 1;
+  vkFreeCommandBuffers(_context.device.logicalDevice, pool, CMD_BUFFER_COUNT,
+                       &cmdBuffer->handle);
+}
+
+void VulkanBackend::CommandBufferBegin(CommandBuffer *cmdBuffer,
+                                       bool isSingleUse,
+                                       bool isRenderPassContinue,
+                                       bool isSimultaneousUse) {
+  VkCommandBufferBeginInfo beginInfo = {
+      VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
+  beginInfo.flags = 0;
+  if (isSingleUse) {
+    beginInfo.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+  }
+
+  if (isRenderPassContinue) {
+    beginInfo.flags |= VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+  }
+
+  if (isSimultaneousUse) {
+    beginInfo.flags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+  }
+
+  VK_CHECK(vkBeginCommandBuffer(cmdBuffer->handle, &beginInfo));
+  cmdBuffer->state = CMD_BUFFER_STATE_RECORDING;
+}
+
+void VulkanBackend::CommandBufferEnd(CommandBuffer *cmdBuffer) {
+  VK_CHECK(vkEndCommandBuffer(cmdBuffer->handle));
+  cmdBuffer->state = CMD_BUFFER_STATE_RECORDING_ENDED;
+}
+
+void VulkanBackend::CommandBufferUpdateSubmitted(CommandBuffer *cmdBuffer) {
+  cmdBuffer->state = CMD_BUFFER_STATE_SUBMITTED;
+}
+
+void VulkanBackend::CommandBufferReset(CommandBuffer *cmdBuffer) {
+  cmdBuffer->state = CMD_BUFFER_STATE_READY;
+}
+
+void VulkanBackend::CommandBufferAllocateAndBeginSingleUse(
+    VkCommandPool pool, CommandBuffer *cmdBuffer) {
+  CommandBufferAllocate(pool, FeTrue, cmdBuffer);
+  CommandBufferBegin(cmdBuffer, FeTrue, FeFalse, FeFalse);
+}
+
+void VulkanBackend::CommandBufferEndSingleUse(VkCommandPool pool,
+                                              CommandBuffer *cmdBuffer,
+                                              VkQueue queue) {
+  CommandBufferEnd(cmdBuffer);
+
+  // Submit the queue
+  VkSubmitInfo submitInfo = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = &cmdBuffer->handle;
+
+  constexpr uint32 SUBMIT_COUNT = 1;
+  constexpr VkFence FENCE = 0;
+
+  VK_CHECK(vkQueueSubmit(queue, SUBMIT_COUNT, &submitInfo, FENCE));
+  VK_CHECK(vkQueueWaitIdle(queue));
+
+  // Free the cmd buffer
+  CommandBufferFree(pool, cmdBuffer);
+}
+
 /****** GETTERS & SETTERS ******/
 
 void VulkanBackend::SetFrameBuffer(uint64 frameBuffer) {
@@ -705,6 +814,17 @@ const Context &VulkanBackend::GetContext() const { return _context; }
 /****** SHUTDOWN LOGIC ******/
 
 void VulkanBackend::Shutdown() {
+  FDEBUG("VulkanBackend::Shutdown(): Destroying command buffers...");
+  for (uint32 i = 0; i < _context.swapchain.imageCount; i++) {
+    if (_context.graphicsCommandBuffers[i].handle) {
+      CommandBufferFree(_context.device.graphicsCommandPool,
+                        &_context.graphicsCommandBuffers[i]);
+      _context.graphicsCommandBuffers[i].handle = nullptr;
+    }
+  }
+
+  _context.graphicsCommandBuffers.Clear();
+
   FDEBUG("VulkanBackend::Shutdown(): Destroying render pass...");
   RenderPassDestroy(&_context.mainRenderPass);
 
@@ -1137,6 +1257,27 @@ bool VulkanBackend::PhysicalDeviceMeetsRequirements(
   return FeFalse;
 }
 
+/****** COMMAND BUFFER LOGIC ******/
+void VulkanBackend::CommandBuffersCreate() {
+  if (_context.graphicsCommandBuffers.IsEmpty()) {
+    _context.graphicsCommandBuffers.Reserve(_context.swapchain.imageCount);
+    for (uint32 i = 0; i < _context.swapchain.imageCount; i++) {
+      core::memory::MemoryManager::ZeroMemory(
+          &_context.graphicsCommandBuffers[i], sizeof(CommandBuffer));
+    }
+  }
+
+  for (uint32 i = 0; i < _context.swapchain.imageCount; i++) {
+    if (_context.graphicsCommandBuffers[i].handle) {
+      CommandBufferFree(_context.device.graphicsCommandPool,
+                        &_context.graphicsCommandBuffers[i]);
+    }
+    core::memory::MemoryManager::ZeroMemory(&_context.graphicsCommandBuffers[i],
+                                            sizeof(CommandBuffer));
+    CommandBufferAllocate(_context.device.graphicsCommandPool, FeTrue,
+                          &_context.graphicsCommandBuffers[i]);
+  }
+}
 
 /***************** END VULKAN BACKEND CLASS IMPLEMENTATION ********************/
 
