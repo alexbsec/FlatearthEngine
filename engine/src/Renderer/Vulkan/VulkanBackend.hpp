@@ -1,5 +1,5 @@
-#ifndef _FLATEARTH_ENGINE_VULKAN_BACKEND_ABSTRACT_HPP
-#define _FLATEARTH_ENGINE_VULKAN_BACKEND_ABSTRACT_HPP
+#ifndef _FLATEARTH_ENGINE_VULKAN_BACKEND_HPP
+#define _FLATEARTH_ENGINE_VULKAN_BACKEND_HPP
 
 #include "Containers/DArray.hpp"
 #include "Renderer/RendererTypes.inl"
@@ -103,4 +103,4 @@ private:
 } // namespace renderer
 } // namespace flatearth
 
-#endif // _FLATEARTH_ENGINE_VULKAN_BACKEND_ABSTRACT_HPP
+#endif // _FLATEARTH_ENGINE_VULKAN_BACKEND_HPP
