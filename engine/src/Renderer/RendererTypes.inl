@@ -63,11 +63,6 @@ public:
   virtual bool EndFrame(float32 deltaTime) = 0;
 };
 
-struct BackendArray {
-  core::memory::unique_stateful_renderer_ptr<IRendererBackend>
-      backends[MAX_BACKENDS];
-};
-
 } // namespace renderer
 } // namespace flatearth
 

@@ -3,7 +3,7 @@
 #include "Core/Logger.hpp"
 #include "Platform/Platform.hpp"
 #include "Renderer/RendererTypes.inl"
-#include "Vulkan/VulkanBackendAbstract.hpp"
+#include "Vulkan/VulkanBackend.hpp"
 
 #include <stdexcept>
 
