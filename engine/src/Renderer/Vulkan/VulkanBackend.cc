@@ -10,7 +10,7 @@ namespace vulkan {
 
 #define MAX_QUEUE_TYPES 4
 
-// Private structures
+// Forward declaration
 
 VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, uint32 messageTypes,
@@ -20,6 +20,8 @@ VulkanBackend::~VulkanBackend() {
   FINFO("VulkanBackend::~VulkanBackend(): shutting down Vulkan backend...");
   Shutdown();
 }
+
+/******************* VULKAN BACKEND CLASS IMPLEMENTATION **********************/
 
 bool VulkanBackend::Initialize(const char *applicationName,
                                struct platform::PlatformState *platState) {
@@ -1134,6 +1136,9 @@ bool VulkanBackend::PhysicalDeviceMeetsRequirements(
   return FeFalse;
 }
 
+
+/***************** END VULKAN BACKEND CLASS IMPLEMENTATION ********************/
+
 /****** VULKAN CALLBACKS ******/
 
 VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
@@ -1158,7 +1163,6 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
   // This is a must
   return VK_FALSE;
 }
-
 
 } // namespace vulkan
 } // namespace renderer
