@@ -99,6 +99,13 @@ struct RenderPass {
   RenderPassState state;
 };
 
+struct FrameBuffer {
+  VkFramebuffer handle;
+  uint32 attachmentCount;
+  VkImageView *attachments;
+  RenderPass *renderPass;
+};
+
 struct Context {
   uint32 framebufferWidth;
   uint32 framebufferHeight;

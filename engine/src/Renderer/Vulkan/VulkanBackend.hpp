@@ -89,6 +89,12 @@ public:
   void CommandBufferEndSingleUse(VkCommandPool pool, CommandBuffer *cmdBuffer,
                                  VkQueue queue);
 
+  // Framebuffer logic
+  void FrameBufferCreate(RenderPass *renderPass, uint32 width, uint32 height,
+                         uint32 attachmentCount, VkImageView *attachments,
+                         FrameBuffer *outFrameBuffer);
+  void FrameBufferDestroy(FrameBuffer *frameBuffer);
+
   // Setters & getters
   void SetFrameBuffer(uint64 frameBuffer) override;
   uint64 GetFrameBuffer() const override;

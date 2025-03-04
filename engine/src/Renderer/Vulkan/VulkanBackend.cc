@@ -797,6 +797,55 @@ void VulkanBackend::CommandBufferEndSingleUse(VkCommandPool pool,
   CommandBufferFree(pool, cmdBuffer);
 }
 
+/****** FRAMEBUFFER LOGIC IMPLEMENTATION ******/
+
+void VulkanBackend::FrameBufferCreate(RenderPass *renderPass, uint32 width,
+                                      uint32 height, uint32 attachmentCount,
+                                      VkImageView *attachments,
+                                      FrameBuffer *outFrameBuffer) {
+  // Take a copy of the attachments, renderpass and attachment count
+  outFrameBuffer->attachments =
+      reinterpret_cast<VkImageView *>(core::memory::MemoryManager::Allocate(
+          sizeof(VkImageView) * attachmentCount,
+          core::memory::MEMORY_TAG_RENDERER));
+  for (uint32 i = 0; i < attachmentCount; i++) {
+    outFrameBuffer->attachments[i] = attachments[i];
+  }
+  outFrameBuffer->attachmentCount = attachmentCount;
+  outFrameBuffer->renderPass = renderPass;
+
+  constexpr uint32 LAYERS = 1;
+
+  // Framebuffer create info
+  VkFramebufferCreateInfo createInfo = {
+      VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
+  createInfo.renderPass = renderPass->handle;
+  createInfo.attachmentCount = attachmentCount;
+  createInfo.pAttachments = outFrameBuffer->attachments;
+  createInfo.width = width;
+  createInfo.height = height;
+  createInfo.layers = LAYERS;
+
+  VK_CHECK(vkCreateFramebuffer(_context.device.logicalDevice, &createInfo,
+                               _context.allocator, &outFrameBuffer->handle));
+}
+
+void VulkanBackend::FrameBufferDestroy(FrameBuffer *frameBuffer) {
+  vkDestroyFramebuffer(_context.device.logicalDevice, frameBuffer->handle,
+                       _context.allocator);
+  if (frameBuffer->attachments) {
+    core::memory::MemoryManager::Free(frameBuffer->attachments,
+                                      sizeof(VkImageView) *
+                                          frameBuffer->attachmentCount,
+                                      core::memory::MEMORY_TAG_RENDERER);
+    frameBuffer->attachments = nullptr;
+  }
+
+  frameBuffer->handle = nullptr;
+  frameBuffer->attachmentCount = 0;
+  frameBuffer->renderPass = nullptr;
+}
+
 /****** GETTERS & SETTERS ******/
 
 void VulkanBackend::SetFrameBuffer(uint64 frameBuffer) {
