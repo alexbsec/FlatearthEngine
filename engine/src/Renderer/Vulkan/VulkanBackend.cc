@@ -1,5 +1,6 @@
 #include "VulkanBackend.hpp"
 #include "Containers/DArray.hpp"
+#include "Core/Application.hpp"
 #include "Core/FeMemory.hpp"
 #include "Renderer/Vulkan/VulkanTypes.inl"
 #include "VulkanPlatform.hpp"
@@ -9,6 +10,9 @@
 namespace flatearth {
 namespace renderer {
 namespace vulkan {
+
+static uint32 cachedFrameBufferWidth = 0;
+static uint32 cachedFrameBufferHeight = 0;
 
 #define MAX_QUEUE_TYPES 4
 
@@ -29,6 +33,17 @@ bool VulkanBackend::Initialize(const char *applicationName,
                                struct platform::PlatformState *platState) {
   // TODO: custom allocator
   _context.allocator = nullptr;
+
+  core::application::App::GetFrameBufferSize(&cachedFrameBufferWidth,
+                                             &cachedFrameBufferHeight);
+  _context.framebufferWidth =
+      (cachedFrameBufferWidth != 0) ? cachedFrameBufferWidth : 800;
+  _context.framebufferHeight =
+      (cachedFrameBufferHeight != 0) ? cachedFrameBufferHeight : 600;
+
+  // Reset framebuffer cache
+  cachedFrameBufferWidth = 0;
+  cachedFrameBufferHeight = 0;
 
   VkApplicationInfo appInfo = {VK_STRUCTURE_TYPE_APPLICATION_INFO};
   appInfo.apiVersion = VK_API_VERSION_1_2;
@@ -155,10 +170,16 @@ bool VulkanBackend::Initialize(const char *applicationName,
   FINFO("IntializeVulkan(): Swapchain created successfully");
 
   // Render pass creation
-  FDEBUG("VulkanBackend::Initialize(): Creationg render pass...");
+  FDEBUG("VulkanBackend::Initialize(): Creating render pass...");
   RenderPassCreate(&_context.mainRenderPass, 0, 0, _context.framebufferWidth,
                    _context.framebufferHeight, 0.0f, 0.0f, 0.3f, 1.0f, 1.0f, 0);
   FINFO("VulkanBackend::Initialize(): Render pass created successfully");
+
+  // Framebuffer creation
+  FDEBUG("VulkanBackend::Initialize(): Regenerating framebuffers...");
+  _context.swapchain.framebuffers.Reserve(_context.swapchain.imageCount);
+  FrameBufferRegenerate(&_context.swapchain, &_context.mainRenderPass);
+  FINFO("VulkanBackend::Initialize(): Framebuffers regenerated successfully");
 
   FDEBUG("VulkanBackend::Initialize(): Creating command buffers...");
   CommandBuffersCreate();
@@ -871,8 +892,13 @@ void VulkanBackend::Shutdown() {
       _context.graphicsCommandBuffers[i].handle = nullptr;
     }
   }
-
   _context.graphicsCommandBuffers.Clear();
+
+  FDEBUG("VulkanBackend::Shutdown(): Destroying framebuffers...");
+  for (uint32 i = 0; i < _context.swapchain.imageCount; i++) {
+    FrameBufferDestroy(&_context.swapchain.framebuffers[i]);
+  }
+  _context.swapchain.framebuffers.Clear();
 
   FDEBUG("VulkanBackend::Shutdown(): Destroying render pass...");
   RenderPassDestroy(&_context.mainRenderPass);
@@ -1325,6 +1351,23 @@ void VulkanBackend::CommandBuffersCreate() {
                                             sizeof(CommandBuffer));
     CommandBufferAllocate(_context.device.graphicsCommandPool, FeTrue,
                           &_context.graphicsCommandBuffers[i]);
+  }
+}
+
+/****** FRAMEBUFFER LOGIC ******/
+void VulkanBackend::FrameBufferRegenerate(Swapchain *swapchain,
+                                          RenderPass *renderPass) {
+  // TODO: remove constexpr
+  constexpr uint32 ATTACHMENT_COUNT = 2;
+  for (uint32 i = 0; i < swapchain->imageCount; i++) {
+    // TODO: make this configurable based on attachments
+    uint32 attachmentCount = ATTACHMENT_COUNT;
+    VkImageView attachments[] = {swapchain->views[i],
+                                 swapchain->depthAttachment.view};
+
+    FrameBufferCreate(renderPass, _context.framebufferWidth,
+                      _context.framebufferHeight, attachmentCount, attachments,
+                      &_context.swapchain.framebuffers[i]);
   }
 }
 

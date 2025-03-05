@@ -103,9 +103,11 @@ public:
 private:
   void Shutdown();
 
+  // Swapchain private methods
   void SwpCreate(uint32 width, uint32 height, Swapchain *outSwapchain);
   void SwpDestroy(Swapchain *swapchain);
 
+  // Device private methods
   bool SelectPhysicalDevice();
   bool PhysicalDeviceMeetsRequirements(
       VkPhysicalDevice device, VkSurfaceKHR surface,
@@ -115,7 +117,11 @@ private:
       PhysicalDeviceQueueFamilyInfo *outQueueInfo,
       SwapchainSupportInfo *outSwapchainInfo);
 
+  // Command buffer private methods
   void CommandBuffersCreate();
+
+  // Frame buffer private methods
+  void FrameBufferRegenerate(Swapchain *swapchain, RenderPass *renderPass);
 
   Context _context;
   struct platform::PlatformState *_platState;

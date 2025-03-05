@@ -177,6 +177,11 @@ bool App::Run() {
   return FeTrue;
 }
 
+void App::GetFrameBufferSize(uint32 *width, uint32 *height) {
+  *width = _appState.width;
+  *height = _appState.height;
+}
+
 void App::ShutDown() {
   if (!_initialized) {
     return;

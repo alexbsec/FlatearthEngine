@@ -57,6 +57,8 @@ public:
   FEAPI bool Init();
   FEAPI bool Run();
 
+  static void GetFrameBufferSize(uint32 *width, uint32 *height);
+
   void ShutDown();
 
 private:

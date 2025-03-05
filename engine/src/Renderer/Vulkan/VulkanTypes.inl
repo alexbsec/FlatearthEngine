@@ -52,31 +52,6 @@ struct Image {
   uint32 height;
 };
 
-
-struct Swapchain {
-  VkSurfaceFormatKHR imageFormat;
-  uchar maxFrames;
-  VkSwapchainKHR handle;
-  uint32 imageCount;
-  VkImage *images;
-  VkImageView *views;
-  Image depthAttachment;
-};
-
-enum CommandBufferState {
-  CMD_BUFFER_STATE_READY,
-  CMD_BUFFER_STATE_RECORDING,
-  CMD_BUFFER_STATE_IN_RENDER_PASS,
-  CMD_BUFFER_STATE_RECORDING_ENDED,
-  CMD_BUFFER_STATE_SUBMITTED,
-  CMD_BUFFER_STATE_NOT_ALLOCATED,
-};
-
-struct CommandBuffer {
-  VkCommandBuffer handle;
-  CommandBufferState state;
-};
-
 enum RenderPassState {
   READY,
   RECORDING,
@@ -104,6 +79,32 @@ struct FrameBuffer {
   uint32 attachmentCount;
   VkImageView *attachments;
   RenderPass *renderPass;
+};
+
+
+struct Swapchain {
+  VkSurfaceFormatKHR imageFormat;
+  uchar maxFrames;
+  VkSwapchainKHR handle;
+  uint32 imageCount;
+  VkImage *images;
+  VkImageView *views;
+  Image depthAttachment;
+  containers::DArray<FrameBuffer> framebuffers;
+};
+
+enum CommandBufferState {
+  CMD_BUFFER_STATE_READY,
+  CMD_BUFFER_STATE_RECORDING,
+  CMD_BUFFER_STATE_IN_RENDER_PASS,
+  CMD_BUFFER_STATE_RECORDING_ENDED,
+  CMD_BUFFER_STATE_SUBMITTED,
+  CMD_BUFFER_STATE_NOT_ALLOCATED,
+};
+
+struct CommandBuffer {
+  VkCommandBuffer handle;
+  CommandBufferState state;
 };
 
 struct Context {
