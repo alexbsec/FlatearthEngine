@@ -107,6 +107,11 @@ struct CommandBuffer {
   CommandBufferState state;
 };
 
+struct Fence {
+  VkFence handle;
+  bool isSignaled;
+};
+
 struct Context {
   uint32 framebufferWidth;
   uint32 framebufferHeight;
@@ -120,6 +125,12 @@ struct Context {
   Swapchain swapchain;
   RenderPass mainRenderPass;
   containers::DArray<CommandBuffer> graphicsCommandBuffers;
+  containers::DArray<VkSemaphore> imageAvailableSemaphores;
+  containers::DArray<VkSemaphore> queueCompleteSemaphores;
+
+  uint32 inFlightFenceCount;
+  containers::DArray<Fence> inFlightFences;
+  containers::DArray<Fence *> imagesInFlight;
 
   sint32 FindMemoryIndex(uint32 typeFilter, uint32 propertyFlags) {
     VkPhysicalDeviceMemoryProperties memoryProps;

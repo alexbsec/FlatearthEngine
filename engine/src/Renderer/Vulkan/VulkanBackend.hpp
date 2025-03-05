@@ -95,6 +95,12 @@ public:
                          FrameBuffer *outFrameBuffer);
   void FrameBufferDestroy(FrameBuffer *frameBuffer);
 
+  // Fence & sync object logic
+  void FenceCreate(bool signaled, Fence *outFence);
+  void FenceDestroy(Fence *fence);
+  bool FenceWait(Fence *fence, uint64 timeoutns);
+  void FenceReset(Fence *fence);
+
   // Setters & getters
   void SetFrameBuffer(uint64 frameBuffer) override;
   uint64 GetFrameBuffer() const override;

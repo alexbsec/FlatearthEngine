@@ -185,6 +185,33 @@ bool VulkanBackend::Initialize(const char *applicationName,
   CommandBuffersCreate();
   FINFO("VulkanBackend::Initialize(): Command buffers created successfully");
 
+  // Sync object creation
+  FDEBUG("VulkanBackend::Initialize(): Creating sync objects & fences...");
+  _context.imageAvailableSemaphores.Reserve(_context.swapchain.maxFrames);
+  _context.queueCompleteSemaphores.Reserve(_context.swapchain.maxFrames);
+  _context.inFlightFences.Reserve(_context.swapchain.maxFrames);
+  for (uint32 i = 0; i < _context.swapchain.maxFrames; i++) {
+    VkSemaphoreCreateInfo semaphoreCreateInfo = {
+        VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+    vkCreateSemaphore(_context.device.logicalDevice, &semaphoreCreateInfo,
+                      _context.allocator,
+                      &_context.imageAvailableSemaphores[i]);
+    vkCreateSemaphore(_context.device.logicalDevice, &semaphoreCreateInfo,
+                      _context.allocator, &_context.queueCompleteSemaphores[i]);
+
+    FenceCreate(FeTrue, &_context.inFlightFences[i]);
+  }
+
+  // At this point no in flight fences exist, so clear the array. These
+  // are stored in pointers because initial state must be nullptr and will
+  // be nullptr when not in use. Actual fences are not owned by this array
+  _context.imagesInFlight.Reserve(_context.swapchain.imageCount);
+  for (uint32 i = 0; i < _context.swapchain.imageCount; i++) {
+    _context.imagesInFlight[i] = nullptr;
+  }
+  FINFO("VulkanBackend::Initialize(): Sync objects & fences created "
+        "successfully");
+
   FINFO(
       "VulkanBackend::Initialize(): Vulkan renderer successfully initialized");
 
@@ -867,6 +894,72 @@ void VulkanBackend::FrameBufferDestroy(FrameBuffer *frameBuffer) {
   frameBuffer->renderPass = nullptr;
 }
 
+/****** FENCE LOGIC IMPLEMENTATION ******/
+
+void VulkanBackend::FenceCreate(bool signaled, Fence *outFence) {
+  outFence->isSignaled = signaled;
+  VkFenceCreateInfo fenceCreateInfo = {VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
+  if (outFence->isSignaled) {
+    fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+  }
+
+  VK_CHECK(vkCreateFence(_context.device.logicalDevice, &fenceCreateInfo,
+                         _context.allocator, &outFence->handle));
+}
+
+void VulkanBackend::FenceDestroy(Fence *fence) {
+  if (fence->handle) {
+    vkDestroyFence(_context.device.logicalDevice, fence->handle,
+                   _context.allocator);
+    fence->handle = nullptr;
+  }
+
+  fence->isSignaled = FeFalse;
+}
+
+bool VulkanBackend::FenceWait(Fence *fence, uint64 timeoutns) {
+  if (fence->isSignaled) {
+    return FeTrue;
+  }
+
+  constexpr uint32 FENCE_COUNT = 1;
+  constexpr bool WAIT_ALL = FeTrue;
+  VkResult result = vkWaitForFences(_context.device.logicalDevice, FENCE_COUNT,
+                                    &fence->handle, WAIT_ALL, timeoutns);
+
+  switch (result) {
+  case VK_SUCCESS:
+    fence->isSignaled = FeTrue;
+    return FeTrue;
+  case VK_TIMEOUT:
+    FWARN("VulkanBackend::FenceWait(): Fence wait timed out");
+    break;
+  case VK_ERROR_DEVICE_LOST:
+    FERROR("VulkanBackend::FenceWait(): VK_ERROR_DEVICE_LOST found");
+    break;
+  case VK_ERROR_OUT_OF_HOST_MEMORY:
+    FERROR("VulkanBackend::FenceWait(): VK_ERROR_OUT_OF_HOST_MEMORY found");
+    break;
+  case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+    FERROR("VulkanBackend::FenceWait(): VK_ERROR_OUT_OF_DEVICE_MEMORY found");
+    break;
+  default:
+    FERROR("VulkanBackend::FenceWait(): Something unexpected happened");
+    break;
+  }
+
+  return FeFalse;
+}
+
+void VulkanBackend::FenceReset(Fence *fence) {
+  constexpr uint32 FENCE_COUNT = 1;
+  if (fence->isSignaled) {
+    VK_CHECK(vkResetFences(_context.device.logicalDevice, FENCE_COUNT,
+                           &fence->handle));
+    fence->isSignaled = FeFalse;
+  }
+}
+
 /****** GETTERS & SETTERS ******/
 
 void VulkanBackend::SetFrameBuffer(uint64 frameBuffer) {
@@ -884,6 +977,34 @@ const Context &VulkanBackend::GetContext() const { return _context; }
 /****** SHUTDOWN LOGIC ******/
 
 void VulkanBackend::Shutdown() {
+  // Wait for logical device to finish
+  vkDeviceWaitIdle(_context.device.logicalDevice);
+
+  FDEBUG("VulkanBackend::Shutdown(): Destroying sync objects & fences...");
+  for (uchar i = 0; i < _context.swapchain.maxFrames; i++) {
+    if (_context.imageAvailableSemaphores[i]) {
+      vkDestroySemaphore(_context.device.logicalDevice,
+                         _context.imageAvailableSemaphores[i],
+                         _context.allocator);
+
+      _context.imageAvailableSemaphores[i] = nullptr;
+    }
+
+    if (_context.queueCompleteSemaphores[i]) {
+      vkDestroySemaphore(_context.device.logicalDevice,
+                         _context.queueCompleteSemaphores[i],
+                         _context.allocator);
+
+      _context.queueCompleteSemaphores[i] = nullptr;
+    }
+
+    FenceDestroy(&_context.inFlightFences[i]);
+  }
+  _context.imageAvailableSemaphores.Clear();
+  _context.queueCompleteSemaphores.Clear();
+  _context.inFlightFences.Clear();
+  _context.imagesInFlight.Clear();
+
   FDEBUG("VulkanBackend::Shutdown(): Destroying command buffers...");
   for (uint32 i = 0; i < _context.swapchain.imageCount; i++) {
     if (_context.graphicsCommandBuffers[i].handle) {
