@@ -5,6 +5,7 @@
 #include "Renderer/Vulkan/VulkanTypes.inl"
 #include "VulkanPlatform.hpp"
 #include <alloca.h>
+#include <utility>
 #include <vulkan/vulkan_core.h>
 
 namespace flatearth {
@@ -512,6 +513,9 @@ void VulkanBackend::SwapchainPresent(Swapchain *swapchain,
     FFATAL(
         "VulkanBackend::SwapchainPresent(): Failed to present swapchain image");
   }
+
+  // Increment and loop the index
+  _context.currentFrame = (_context.currentFrame + 1) % swapchain->maxFrames;
 }
 
 /****** IMAGE LOGIC IMPLEMENTATION ******/
