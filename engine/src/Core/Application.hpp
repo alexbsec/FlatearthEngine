@@ -70,6 +70,7 @@ private:
              const events::EventContext &context);
 
   // Private variables
+  // TODO: track memory allocated for each subsystem
   events::EventCallback OnEventCallback;
   events::EventCallback OnKeyCallback;
   static ApplicationState _appState;
