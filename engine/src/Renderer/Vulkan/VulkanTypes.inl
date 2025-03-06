@@ -113,8 +113,18 @@ struct Fence {
 };
 
 struct Context {
+  // Current framebuffer info
   uint32 framebufferWidth;
   uint32 framebufferHeight;
+
+  // Current generation of framebuffer size. If it does not match
+  // framebufferSizeLastGeneration, a new one must be issued
+  uint64 framebufferSizeGeneration;
+
+  // The generation of the framebuffer when it was last created
+  // Set it to framebufferSizeGeneration when updated
+  uint64 framebufferSizeLastGeneration;
+
   uint32 currentFrame;
   uint32 imageIndex;
 
@@ -131,6 +141,8 @@ struct Context {
   uint32 inFlightFenceCount;
   containers::DArray<Fence> inFlightFences;
   containers::DArray<Fence *> imagesInFlight;
+
+  bool recreatingSwapchain;
 
   sint32 FindMemoryIndex(uint32 typeFilter, uint32 propertyFlags) {
     VkPhysicalDeviceMemoryProperties memoryProps;

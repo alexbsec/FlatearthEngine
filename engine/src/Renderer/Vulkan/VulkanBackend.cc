@@ -1,11 +1,12 @@
 #include "VulkanBackend.hpp"
+
 #include "Containers/DArray.hpp"
 #include "Core/Application.hpp"
 #include "Core/FeMemory.hpp"
-#include "Renderer/Vulkan/VulkanTypes.inl"
 #include "VulkanPlatform.hpp"
+#include "VulkanTypes.inl"
+#include "VulkanUtils.hpp"
 #include <alloca.h>
-#include <utility>
 #include <vulkan/vulkan_core.h>
 
 namespace flatearth {
@@ -192,13 +193,16 @@ bool VulkanBackend::Initialize(const char *applicationName,
   _context.queueCompleteSemaphores.Reserve(_context.swapchain.maxFrames);
   _context.inFlightFences.Reserve(_context.swapchain.maxFrames);
   for (uint32 i = 0; i < _context.swapchain.maxFrames; i++) {
-    VkSemaphoreCreateInfo semaphoreCreateInfo = {
-        VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-    vkCreateSemaphore(_context.device.logicalDevice, &semaphoreCreateInfo,
-                      _context.allocator,
-                      &_context.imageAvailableSemaphores[i]);
-    vkCreateSemaphore(_context.device.logicalDevice, &semaphoreCreateInfo,
-                      _context.allocator, &_context.queueCompleteSemaphores[i]);
+    VkSemaphoreCreateInfo semaphoreCreateInfo = {};
+    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    semaphoreCreateInfo.pNext = nullptr;
+    semaphoreCreateInfo.flags = 0;
+    VK_CHECK(vkCreateSemaphore(_context.device.logicalDevice,
+                               &semaphoreCreateInfo, _context.allocator,
+                               &_context.imageAvailableSemaphores[i]));
+    VK_CHECK(vkCreateSemaphore(_context.device.logicalDevice,
+                               &semaphoreCreateInfo, _context.allocator,
+                               &_context.queueCompleteSemaphores[i]));
 
     FenceCreate(FeTrue, &_context.inFlightFences[i]);
   }
@@ -220,16 +224,170 @@ bool VulkanBackend::Initialize(const char *applicationName,
 }
 
 void VulkanBackend::OnResize(ushort width, ushort height) {
-  // TODO: implement
+  cachedFrameBufferWidth = width;
+  cachedFrameBufferHeight = height;
+  _context.framebufferSizeGeneration++;
+  FINFO("VulkanBackend::OnResize(): w/h/gen: %i/%i/%llu", width, height,
+        _context.framebufferSizeGeneration);
 }
 
 bool VulkanBackend::BeginFrame(float32 deltaTime) {
-  // TODO: implement
+  // Handle to make it easier to call device
+  Device *device = &_context.device;
+
+  // Check if recreating swapchain is happening
+  if (_context.recreatingSwapchain) {
+    VkResult result = vkDeviceWaitIdle(device->logicalDevice);
+    if (!utils::VkResultIsSuccess(result)) {
+      FERROR("VulkanBackend::BeginFrame(): vkDeviceWaitIdle (1) failed: '%s'",
+             utils::VkResultToString(result, FeTrue));
+      return FeFalse;
+    }
+
+    FINFO("VulkanBackend::BeginFrame(): Recreating swapchain, skipping.");
+    return FeFalse;
+  }
+
+  // Check if framebuffer has been resized. If so, a new swapchain must be
+  // created
+  if (_context.framebufferSizeGeneration !=
+      _context.framebufferSizeLastGeneration) {
+    VkResult result = vkDeviceWaitIdle(device->logicalDevice);
+    if (!utils::VkResultIsSuccess(result)) {
+      FERROR("VulkanBackend::BeginFrame(): vkDeviceWaitIdle (2) failed: '%s'",
+             utils::VkResultToString(result, FeTrue));
+      return FeFalse;
+    }
+
+    // If the swapchain recreation failes, exit before unsetting flag
+    // This can happen when window is minimized
+    if (!SwpRecreate()) {
+      FWARN("VulkanBackend::BeginFrame(): SwpRecreate() failed");
+      return FeFalse;
+    }
+
+    FINFO("VulkanBackend::BeginFrame(): Resize happenning");
+    return FeFalse;
+  }
+
+  // Wait for the execution of the current frame to complete. The fence being
+  // free will allow this one to move on
+  if (!FenceWait(&_context.inFlightFences[_context.currentFrame], UINT64_MAX)) {
+    FWARN("VulkanBackend::BeginFrame(): In-flight fence wait failed");
+    return FeFalse;
+  }
+
+  constexpr VkFence FENCE = 0;
+
+  // Acquire next image from the swapchain. Pass along the semaphore that should
+  // signal when this completes. This same semaphore will later be waited on by
+  // the queue submission to ensure this image is available
+  if (!SwapchainAcquireNextImage(
+          &_context.swapchain, UINT64_MAX,
+          _context.imageAvailableSemaphores[_context.currentFrame], FENCE,
+          &_context.imageIndex)) {
+    return FeFalse;
+  }
+
+  // Begin recording commands
+  CommandBuffer *cmdBuffer =
+      &_context.graphicsCommandBuffers[_context.imageIndex];
+  CommandBufferReset(cmdBuffer);
+  CommandBufferBegin(cmdBuffer, FeFalse, FeFalse, FeFalse);
+
+  // Prepare viewport and scissor
+  VkViewport viewport;
+  viewport.x = 0.0f;
+  viewport.y = (float32)_context.framebufferHeight;
+  viewport.width = (float32)_context.framebufferWidth;
+  viewport.height = -viewport.y;
+  viewport.minDepth = 0.0f;
+  viewport.maxDepth = 1.0f;
+
+  VkRect2D scissor;
+  scissor.offset.x = scissor.offset.y = 0;
+  scissor.extent.width = _context.framebufferWidth;
+  scissor.extent.height = _context.framebufferHeight;
+
+  constexpr uint32 FIRST_VP = 0;
+  constexpr uint32 VP_COUNT = 1;
+  constexpr uint32 FIRST_SC = 0;
+  constexpr uint32 SC_COUNT = 1;
+
+  vkCmdSetViewport(cmdBuffer->handle, FIRST_VP, VP_COUNT, &viewport);
+  vkCmdSetScissor(cmdBuffer->handle, FIRST_SC, SC_COUNT, &scissor);
+
+  _context.mainRenderPass.width = _context.framebufferWidth;
+  _context.mainRenderPass.height = _context.framebufferHeight;
+
+  RenderPassBegin(cmdBuffer, &_context.mainRenderPass,
+                  _context.swapchain.framebuffers[_context.imageIndex].handle);
+
   return FeTrue;
 }
 
 bool VulkanBackend::EndFrame(float32 deltaTime) {
-  // TODO: implement
+  Device *device = &_context.device;
+  CommandBuffer *cmdBuffer =
+      &_context.graphicsCommandBuffers[_context.imageIndex];
+
+  // End renderpass
+  RenderPassEnd(cmdBuffer, &_context.mainRenderPass);
+
+  // End command buffer
+  CommandBufferEnd(cmdBuffer);
+
+  // Make sure previous frame is not using this image (i.e. its fence is being
+  // waited on)
+  if (_context.imagesInFlight[_context.imageIndex] != VK_NULL_HANDLE) {
+    FenceWait(&_context.inFlightFences[_context.currentFrame], UINT64_MAX);
+  }
+
+  // Mark the image as in use by this frame
+  _context.imagesInFlight[_context.imageIndex] =
+      &_context.inFlightFences[_context.currentFrame];
+
+  // Reset the fence for use on the next frame
+  FenceReset(&_context.inFlightFences[_context.currentFrame]);
+
+  // Submit the queue and wait for the operation to complete
+  VkSubmitInfo submitInfo = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = &cmdBuffer->handle;
+  submitInfo.waitSemaphoreCount = 1;
+  submitInfo.pWaitSemaphores =
+      &_context.imageAvailableSemaphores[_context.currentFrame];
+  submitInfo.signalSemaphoreCount = 1;
+  submitInfo.pSignalSemaphores =
+      &_context.queueCompleteSemaphores[_context.currentFrame];
+
+  constexpr uint32 FLAG_COUNT = 1;
+  constexpr uint32 SUBMIT_COUNT = 1;
+
+  // Each semaphore waits on the corresponding pipeline stage to complete 1:1
+  // ratio. VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT prevents subsequent
+  // color attachment writes from executing until the semaphore signals
+  VkPipelineStageFlags flags[FLAG_COUNT] = {
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+  submitInfo.pWaitDstStageMask = flags;
+
+  VkResult result =
+      vkQueueSubmit(device->graphicsQueue, SUBMIT_COUNT, &submitInfo,
+                    _context.inFlightFences[_context.currentFrame].handle);
+  if (result != VK_SUCCESS) {
+    FERROR("VulkanBackend::EndFrame(): vkQueueSubmit failed: '%s'",
+           utils::VkResultToString(result, FeTrue));
+    return FeFalse;
+  }
+
+  CommandBufferUpdateSubmitted(cmdBuffer);
+
+  // Give the image back to the swapchain
+  SwapchainPresent(&_context.swapchain, device->graphicsQueue,
+                   device->presentQueue,
+                   _context.queueCompleteSemaphores[_context.currentFrame],
+                   _context.imageIndex);
+
   return FeTrue;
 }
 
@@ -496,8 +654,9 @@ void VulkanBackend::SwapchainPresent(Swapchain *swapchain,
                                      VkSemaphore renderCompleteSemaphore,
                                      uint32 presentImageIndex) {
   // Return the image to the swapchain for presentation
-  VkPresentInfoKHR presentInfo;
+  VkPresentInfoKHR presentInfo = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
   presentInfo.waitSemaphoreCount = 1;
+  presentInfo.pNext = nullptr;
   presentInfo.pWaitSemaphores = &renderCompleteSemaphore;
   presentInfo.swapchainCount = 1;
   presentInfo.pSwapchains = &swapchain->handle;
@@ -1212,6 +1371,67 @@ void VulkanBackend::SwpDestroy(Swapchain *swapchain) {
 
   vkDestroySwapchainKHR(_context.device.logicalDevice, swapchain->handle,
                         _context.allocator);
+}
+
+bool VulkanBackend::SwpRecreate() {
+  // If already recreating swapchain, don't try again
+  if (_context.recreatingSwapchain) {
+    FWARN("VulkanBackend::SwpRecreate(): called when already recreating");
+    return FeFalse;
+  }
+
+  // Detect if the window is too small to be drawn to
+  if (_context.framebufferWidth == 0 || _context.framebufferHeight == 0) {
+    FWARN(
+        "VulkanBackend::SwpRecreate(): called when window is < 1 in dimension");
+    return FeFalse;
+  }
+
+  // Mark as recreating if above are valid sttmts
+  // and wait idle
+  _context.recreatingSwapchain = FeTrue;
+  vkDeviceWaitIdle(_context.device.logicalDevice);
+
+  // Clear images
+  for (uint32 i = 0; i < _context.swapchain.imageCount; i++) {
+    _context.imagesInFlight[i] = nullptr;
+  }
+
+  // Requery swapchain support
+  QuerySwapchainSupport(_context.device.physicalDevice, _context.surface,
+                        &_context.device.swapchainSupport);
+  DeviceDetectDepthFormat(&_context.device);
+
+  // Recreate the swapchain
+  SwapchainRecreate(cachedFrameBufferWidth, cachedFrameBufferHeight,
+                    &_context.swapchain);
+
+  // Sync the framebuffer size with the cached sizes
+  _context.framebufferWidth = cachedFrameBufferWidth;
+  _context.framebufferHeight = cachedFrameBufferHeight;
+  _context.mainRenderPass.width = _context.framebufferWidth;
+  _context.mainRenderPass.height = _context.framebufferHeight;
+  cachedFrameBufferWidth = cachedFrameBufferHeight = 0;
+
+  // Updates framebuffer size gen
+  _context.framebufferSizeLastGeneration = _context.framebufferSizeGeneration;
+
+  // Clean swapchain and command buffers
+  for (uint32 i = 0; i < _context.swapchain.imageCount; i++) {
+    FrameBufferDestroy(&_context.swapchain.framebuffers[i]);
+  }
+
+  _context.mainRenderPass.x = 0;
+  _context.mainRenderPass.y = 0;
+  _context.mainRenderPass.width = _context.framebufferWidth;
+  _context.mainRenderPass.height = _context.framebufferHeight;
+
+  FrameBufferRegenerate(&_context.swapchain, &_context.mainRenderPass);
+  CommandBuffersCreate();
+
+  // Clear the recreating flag
+  _context.recreatingSwapchain = FeFalse;
+  return FeTrue;
 }
 
 /****** DEVICE LOGIC IMPLEMENTATION ******/

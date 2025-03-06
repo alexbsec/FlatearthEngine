@@ -112,6 +112,7 @@ private:
   // Swapchain private methods
   void SwpCreate(uint32 width, uint32 height, Swapchain *outSwapchain);
   void SwpDestroy(Swapchain *swapchain);
+  bool SwpRecreate();
 
   // Device private methods
   bool SelectPhysicalDevice();
