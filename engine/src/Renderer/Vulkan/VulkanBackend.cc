@@ -785,6 +785,18 @@ void VulkanBackend::RenderPassCreate(RenderPass *outRenderPass, float32 x,
                                      float32 y, float32 width, float32 height,
                                      float32 r, float32 g, float32 b, float32 a,
                                      float32 depth, uint32 stencil) {
+
+  outRenderPass->x = x;
+  outRenderPass->y = y;
+  outRenderPass->width = width;
+  outRenderPass->height = height;
+  outRenderPass->r = r;
+  outRenderPass->g = g;
+  outRenderPass->b = b;
+  outRenderPass->a = a;
+  outRenderPass->depth = depth;
+  outRenderPass->stencil = stencil;
+
   // Main subpass struct
   VkSubpassDescription subpass = {};
   subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -1360,6 +1372,9 @@ void VulkanBackend::SwpCreate(uint32 width, uint32 height,
 }
 
 void VulkanBackend::SwpDestroy(Swapchain *swapchain) {
+  // Wait for execution to finish before destroying
+  vkDeviceWaitIdle(_context.device.logicalDevice);
+
   ImageDestroy(&swapchain->depthAttachment);
 
   // Only destroys the views, not the image. Those are destroyed by the

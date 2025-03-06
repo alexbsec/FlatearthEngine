@@ -1,4 +1,5 @@
 #include "Application.hpp"
+#include "Core/Event.hpp"
 #include "GameTypes.hpp"
 #include "Renderer/RendererFrontend.hpp"
 #include "Renderer/RendererTypes.inl"
@@ -28,6 +29,8 @@ App::~App() {
                                 0, OnKeyCallback);
   _eventManager.UnregisterEvent(
       events::SystemEventCode::EVENT_CODE_KEY_RELEASED, 0, OnKeyCallback);
+  _eventManager.UnregisterEvent(events::SystemEventCode::EVENT_CODE_RESIZED, 0,
+                                OnResizedCallback);
   _initialized = FeFalse;
 }
 
@@ -48,13 +51,21 @@ bool App::Init() {
     return OnKey(code, sender, listener, context);
   };
 
+  OnResizedCallback = [this](events::SystemEventCode code, void *sender,
+                             void *listener,
+                             const events::EventContext &context) {
+    return OnResized(code, sender, listener, context);
+  };
+
   // Register the events
   _eventManager.RegisterEvent(
       events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT, 0, OnEventCallback);
   _eventManager.RegisterEvent(events::SystemEventCode::EVENT_CODE_KEY_PRESSED,
-                              0, OnKeyCallback);
+                              nullptr, OnKeyCallback);
   _eventManager.RegisterEvent(events::SystemEventCode::EVENT_CODE_KEY_RELEASED,
-                              0, OnKeyCallback);
+                              nullptr, OnKeyCallback);
+  _eventManager.RegisterEvent(events::SystemEventCode::EVENT_CODE_RESIZED,
+                              nullptr, OnResizedCallback);
 
   // Set the application as running and not suspended
   _appState.isRunning = FeTrue;
@@ -243,6 +254,42 @@ bool App::OnKey(events::SystemEventCode code, void *sender, void *listener,
     } else {
       FDEBUG("'%c' key released in window.", static_cast<ushort>(keyCode));
     }
+  }
+
+  return FeFalse;
+}
+
+bool App::OnResized(events::SystemEventCode code, void *sender, void *listener,
+                    const events::EventContext &context) {
+  if (code != events::SystemEventCode::EVENT_CODE_RESIZED) {
+    return FeFalse;
+  }
+
+  std::array<ushort, 8> changeContext = context.get<std::array<ushort, 8>>();
+  ushort width = changeContext[0];
+  ushort height = changeContext[1];
+
+  // Check if different, if so trigger event
+  if (width != _appState.width || height != _appState.height) {
+    _appState.width = width;
+    _appState.height = height;
+
+    FDEBUG("App::OnResize(): window resizing: %i, %i", width, height);
+
+    if (width == 0 || height == 0) {
+      // Minimization
+      FINFO("App::OnResize(): window minimized, suspending application.");
+      _appState.isSuspended = FeTrue;
+      return FeTrue;
+    }
+
+    if (_appState.isSuspended) {
+      FINFO("App::OnResize(): window restored, resuming application.");
+      _appState.isSuspended = FeFalse;
+    }
+
+    _appState.gameInstance->OnResize(_appState.gameInstance, width, height);
+    _frontendRenderer->OnResize(width, height);
   }
 
   return FeFalse;

@@ -213,11 +213,17 @@ LRESULT CALLBACK win32ProcessMessage(HWND hwnd, uint32 msg, WPARAM wParam,
 
   case WM_SIZE: {
     // Get the updated size
-    // RECT r;
-    // GetClientRect(hwnd, &r);
-    // u32 width = r.right - r.left;
-    // u32 height = r.bottom - r.top;
-    // TODO: Fire event to resize window
+    RECT r;
+    GetClientRect(hwnd, &r);
+    u32 width = r.right - r.left;
+    u32 height = r.bottom - r.top;
+    flatearth::core::events::EventContext ctx{};
+    ctx.set<std::array<ushort, 8>>(std::array<ushort, 8>{});
+    ctx.set<std::array<ushort, 8>>(0, width);
+    ctx.set<std::array<ushort, 8>>(1, height);
+    flatearth::core::events::EventManager::GetInstance().FireEvent(
+      flatearh::core::events::SystemEventCode::EVENT_CODE_RESIZED, 0, ctx
+    );
   } break;
 
   case WM_KEYDOWN:

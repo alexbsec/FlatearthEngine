@@ -70,6 +70,14 @@ bool FrontendRenderer::DrawFrame(RenderPacket *packet) {
   return FeTrue;
 }
 
+void FrontendRenderer::OnResize(ushort width, ushort height) {
+  if (_activeBackend) {
+    _activeBackend->OnResize(width, height);
+  } else {
+    FWARN("FrontendRenderer::OnResize(): no active backends!");
+  } 
+}
+
 void FrontendRenderer::CreateBackends(
     struct platform::PlatformState *platState,
     core::memory::unique_stateful_renderer_ptr<IRendererBackend> (

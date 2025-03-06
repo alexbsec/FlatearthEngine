@@ -1,3 +1,4 @@
+#include "Core/Event.hpp"
 #include "Platform.hpp"
 
 #if FEPLATFORM_LINUX
@@ -217,7 +218,15 @@ bool Platform::PollEvents() {
       // TODO: mouse wheel detection
 
     case XCB_CONFIGURE_NOTIFY: {
-      // Resizing
+      xcb_configure_notify_event_t *configureEvent =
+          (xcb_configure_notify_event_t *)event;
+      core::events::EventContext ctx{};
+      ctx.set<std::array<ushort, 8>>(std::array<ushort, 8>{});
+      ctx.set<std::array<ushort, 8>>(0, configureEvent->width);
+      ctx.set<std::array<ushort, 8>>(1, configureEvent->height);
+      core::events::EventManager::GetInstance().FireEvent(
+          core::events::SystemEventCode::EVENT_CODE_RESIZED, nullptr, ctx);
+
     } break;
 
     case XCB_CLIENT_MESSAGE: {

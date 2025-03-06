@@ -1,8 +1,8 @@
 #ifndef _FLATEARTH_ENGINE_APPLICATION_HPP
 #define _FLATEARTH_ENGINE_APPLICATION_HPP
 
-#include "Core/Event.hpp"
 #include "Core/Clock.hpp"
+#include "Core/Event.hpp"
 #include "Core/Input.hpp"
 #include "Definitions.hpp"
 #include "Logger.hpp"
@@ -68,9 +68,12 @@ private:
                const events::EventContext &context);
   bool OnKey(events::SystemEventCode code, void *sender, void *listener,
              const events::EventContext &context);
+  bool OnResized(events::SystemEventCode code, void *sender, void *listener,
+                 const events::EventContext &context);
 
   // Private variables
   // TODO: track memory allocated for each subsystem
+  events::EventCallback OnResizedCallback;
   events::EventCallback OnEventCallback;
   events::EventCallback OnKeyCallback;
   static ApplicationState _appState;
