@@ -174,7 +174,7 @@ bool VulkanBackend::Initialize(const char *applicationName,
   // Render pass creation
   FDEBUG("VulkanBackend::Initialize(): Creating render pass...");
   RenderPassCreate(&_context.mainRenderPass, 0, 0, _context.framebufferWidth,
-                   _context.framebufferHeight, 0.0f, 0.0f, 0.3f, 1.0f, 1.0f, 0);
+                   _context.framebufferHeight, 1.0f, 1.0f, 0.3f, 1.0f, 1.0f, 0);
   FINFO("VulkanBackend::Initialize(): Render pass created successfully");
 
   // Framebuffer creation
