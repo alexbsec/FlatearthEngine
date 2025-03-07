@@ -2,6 +2,7 @@
 #define _FLATEARTH_ENGINE_DEFINITIONS_HPP
 
 #include <memory>
+#include <sstream>
 #include <string>
 
 using unique_void_ptr = std::unique_ptr<void, void (*)(void const *)>;
@@ -15,6 +16,7 @@ namespace memory {} // namespace memory
 // String alias
 using string = std::string;
 using vstring = std::string_view;
+using osstream = std::ostringstream;
 
 // Unsigned types
 using uchar = unsigned char;
