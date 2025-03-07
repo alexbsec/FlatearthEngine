@@ -11,10 +11,10 @@ public:
   union {
     struct {
       union {
-        float x, r, s, u;
+        float32 x, r, s, u;
       };
       union {
-        float y, g, t, v;
+        float32 y, g, t, v;
       };
     };
     float elements[2];
@@ -22,11 +22,11 @@ public:
 
   // Constructors
   Vec2() : x(0.0f), y(0.0f) {}
-  Vec2(float x, float y) : x(x), y(y) {}
+  Vec2(float32 x, float32 y) : x(x), y(y) {}
 
   // Operator Overloads
-  float &operator[](size_t index) { return elements[index]; }
-  const float &operator[](size_t index) const { return elements[index]; }
+  float &operator[](uint32 index) { return elements[index]; }
+  const float32 &operator[](uint32 index) const { return elements[index]; }
 
   // Print for debugging
   const char *Print() const {
