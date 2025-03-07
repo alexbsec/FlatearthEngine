@@ -104,4 +104,32 @@ STATIC_ASSERT(sizeof(float64) == 8, "Expected float64 to be 8 bytes");
 #define FCLAMP(value, min, max)                                                \
   (value <= min) ? min : (value >= max) ? max : value;
 
+// Inlining
+#ifdef _MSC_VER
+#define FINLINE __forceinline
+#define FNOINLINE __declspec(noinline)
+#else
+#define FINLINE static inline
+#define FNOINLINE
+#endif
+
+constexpr static float64 FE_PI = 3.14159265358979323846f;
+constexpr static float64 FE_2_PI = 2 * FE_PI;
+constexpr static float64 FE_HALF_PI = FE_PI / 2.0f;
+constexpr static float64 FE_QUARTER_PI = FE_PI / 4.0f;
+constexpr static float64 FE_1_OVER_PI = 1 / FE_PI;
+constexpr static float64 FE_1_OVER_2_PI = 1 / FE_2_PI;
+constexpr static float64 FE_SQRT_2 = 1.41421356237309504880f;
+constexpr static float64 FE_SQRT_3 = 1.73205080756887729352f;
+constexpr static float64 FE_1_OVER_SQRT_2 = 0.70710678118654752440f;
+constexpr static float64 FE_1_OVER_SQRT_3 = 0.57735026918962576450f;
+constexpr static float64 FE_DEG_TO_RAD_MUL = FE_PI / 180.0f;
+constexpr static float64 FE_RAD_TO_DEG_MUL = 180.0f / FE_PI;
+
+constexpr static float64 FE_MS_TO_SEC_MUL = 1 / 1000.0f;
+constexpr static float64 FE_SEC_TO_MS_MUL = 1000.0f;
+
+constexpr static float64 FE_F64MAX = 1e30f;
+constexpr static float64 FE_F64EPS = 1.192092896e-7f;
+
 #endif // _FLATEARTH_ENGINE_DEFINITIONS_HP
