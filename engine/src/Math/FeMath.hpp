@@ -6,7 +6,7 @@
 // ------------------------------------------
 // General math functions
 // ------------------------------------------
-namespace flatearht {
+namespace flatearth {
 namespace math {
 
 FEAPI float32 Sin(float32 x);
@@ -27,6 +27,7 @@ FEAPI sint32 GetRandomInt(float32 min, float32 max);
 
 FEAPI float32 GetRandomFloat();
 FEAPI float32 GetRandomFloat(float32 min, float32 max);
+
 
 }
 } // namespace flatearht
