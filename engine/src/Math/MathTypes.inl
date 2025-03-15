@@ -12,165 +12,6 @@ namespace math {
 // NOTE: this is only needed for SIMD 3D
 constexpr static uint32 ALIGNMENT = 16;
 
-class Vec2 {
-public:
-  union {
-    struct {
-      union {
-        float32 x, r, s, u;
-      };
-      union {
-        float32 y, g, t, v;
-      };
-    };
-    float elements[2];
-  };
-
-  // Constructors
-  Vec2() : elements{0.0f, 0.0f} {}
-  Vec2(float32 x, float32 y) : elements{x, y} {}
-
-  // Zero creator
-  FINLINE constexpr Vec2 Zero() { return Vec2(0.0f, 0.0f); }
-
-  // One creator
-  FINLINE constexpr Vec2 One() { return Vec2(1.0f, 1.0f); }
-
-  // Up, Down, Left & Right
-  FINLINE constexpr Vec2 Up() { return Vec2(0.0f, 1.0f); }
-  FINLINE constexpr Vec2 Down() { return Vec2(0.0f, -1.0f); }
-  FINLINE constexpr Vec2 Left() { return Vec2(-1.0f, 0.0f); }
-  FINLINE constexpr Vec2 Right() { return Vec2(1.0f, 0.0f); }
-
-  // Operations
-  FINLINE constexpr Vec2 Add(const Vec2 &firstVec, const Vec2 &secondVec) {
-    return Vec2(firstVec.x + secondVec.x, firstVec.y + secondVec.y);
-  }
-
-  FINLINE constexpr Vec2 Subtract(const Vec2 &firstVec, const Vec2 &secondVec) {
-    return Vec2(firstVec.x - secondVec.x, firstVec.y - secondVec.y);
-  }
-
-  FINLINE constexpr Vec2 Multiply(const Vec2 &firstVec, const Vec2 &secondVec) {
-    return Vec2(firstVec.x * secondVec.x, firstVec.y * secondVec.y);
-  }
-
-  FINLINE constexpr Vec2 Divide(const Vec2 &firstVec, const Vec2 &secondVec) {
-    if (secondVec.x == 0.0f || secondVec.y == 0.0f) {
-      FWARN("Vec2::Divide(): Division by zero");
-      schar mulX = firstVec.x >= 0 ? 1 : -1;
-      schar mulY = firstVec.y >= 0 ? 1 : -1;
-      return Vec2(mulX * FE_F64MAX, mulY * FE_F64MAX);
-    }
-
-    return Vec2(firstVec.x / secondVec.x, firstVec.y / secondVec.y);
-  }
-
-  FINLINE constexpr Vec2 ScalarMultiply(const Vec2 &vec, float32 scalar) {
-    return Vec2(vec.x * scalar, vec.y * scalar);
-  }
-
-  FINLINE constexpr float32 SizeSquared(const Vec2 &vec) {
-    return vec.x * vec.x + vec.y * vec.y;
-  }
-
-  FINLINE constexpr float32 Size(const Vec2 &vec) {
-    return Sqrt(SizeSquared(vec));
-  }
-
-  FINLINE constexpr void Normalize(Vec2 *vec) {
-    const float32 LENGTH = Size(*vec);
-    if (LENGTH > 0.0f) {
-      vec->x /= LENGTH;
-      vec->y /= LENGTH;
-    } else {
-      FWARN("Vec2::Normalize(): FINLINE attempt to normalize a zero vector");
-    }
-  }
-
-  FINLINE constexpr Vec2 Normalized(Vec2 vec) {
-    Normalize(&vec);
-    return vec;
-  }
-
-  FINLINE constexpr float32 DistanceOf(const Vec2 &firstVec,
-                                       const Vec2 &secondVec) {
-    Vec2 dist(firstVec.x - secondVec.x, firstVec.y - secondVec.y);
-    return Size(dist);
-  }
-
-  FINLINE constexpr bool Equals(const Vec2 &firstVec, const Vec2 &secondVec,
-                                float32 tolerance = FE_F64EPS) {
-    return (Abs(firstVec.x - secondVec.x) <= tolerance &&
-            Abs(firstVec.y - secondVec.y) <= tolerance);
-  }
-
-  inline constexpr float32 SizeSquared() const { return x * x + y * y; }
-
-  inline constexpr float32 Size() const { return Sqrt(SizeSquared()); }
-
-  inline constexpr void Normalize() {
-    const float32 LENGTH = Sqrt(x * x + y * y);
-    if (LENGTH > 0.0f) {
-      x /= LENGTH;
-      y /= LENGTH;
-    } else {
-      FWARN("Vec2::Normalize(): attempt to normalize a zero vector");
-    }
-  }
-
-  // Operator Overloads
-  inline constexpr Vec2 operator+(const Vec2 &other) const {
-    return Vec2(x + other.x, y + other.y);
-  }
-
-  inline constexpr Vec2 operator-(const Vec2 &other) const {
-    return Vec2(x - other.x, y - other.y);
-  }
-
-  inline constexpr Vec2 operator*(const Vec2 &other) const {
-    return Vec2(x * other.x, y * other.y);
-  }
-
-  inline constexpr Vec2 operator*(float32 scalar) const {
-    return Vec2(x * scalar, y * scalar);
-  }
-
-  inline constexpr Vec2 operator/(const Vec2 &other) const {
-    if (other.x == 0.0f || other.y == 0.0f) {
-      FWARN("Vec2::operator/: Division by zero");
-      schar mulX = x >= 0 ? 1 : -1;
-      schar mulY = y >= 0 ? 1 : -1;
-      return Vec2(mulX * FE_F64MAX, mulY * FE_F64MAX);
-    }
-
-    return Vec2(x / other.x, y / other.y);
-  }
-
-  inline constexpr bool operator==(const Vec2 &other) const {
-    return (Abs(x - other.x) <= FE_F64EPS && Abs(y - other.y) <= FE_F64EPS);
-  }
-
-  inline constexpr float &operator[](uint32 index) {
-    FASSERT(index < _SIZE);
-    return elements[index];
-  }
-
-  inline const float32 &operator[](uint32 index) const {
-    FASSERT(index < _SIZE);
-    return elements[index];
-  }
-
-  inline constexpr string GetVecStr() const {
-    osstream out;
-    out << "Vec2(" << std::to_string(x) << ", " << std::to_string(y) << ")";
-    return out.str();
-  }
-
-private:
-  constexpr static uint32 _SIZE = 2;
-};
-
 class Vec3 {
 public:
   union {
@@ -288,7 +129,7 @@ public:
   }
 
   FINLINE constexpr bool Equals(const Vec3 &firstVec, const Vec3 &secondVec,
-                      float32 tolerance = FE_F64EPS) {
+                                float32 tolerance = FE_F64EPS) {
     return (Abs(firstVec.x - secondVec.x) <= tolerance &&
             Abs(firstVec.y - secondVec.y) <= tolerance &&
             Abs(firstVec.z - secondVec.z) <= tolerance);
@@ -361,6 +202,180 @@ public:
 
 private:
   constexpr static uint32 _SIZE = 3;
+};
+
+class Vec2 {
+public:
+  union {
+    struct {
+      union {
+        float32 x, r, s, u;
+      };
+      union {
+        float32 y, g, t, v;
+      };
+    };
+    float elements[2];
+  };
+
+  // Constructors
+  Vec2() : elements{0.0f, 0.0f} {}
+  Vec2(float32 x, float32 y) : elements{x, y} {}
+
+  // Zero creator
+  FINLINE constexpr Vec2 Zero() { return Vec2(0.0f, 0.0f); }
+
+  // One creator
+  FINLINE constexpr Vec2 One() { return Vec2(1.0f, 1.0f); }
+
+  // Up, Down, Left & Right
+  FINLINE constexpr Vec2 Up() { return Vec2(0.0f, 1.0f); }
+  FINLINE constexpr Vec2 Down() { return Vec2(0.0f, -1.0f); }
+  FINLINE constexpr Vec2 Left() { return Vec2(-1.0f, 0.0f); }
+  FINLINE constexpr Vec2 Right() { return Vec2(1.0f, 0.0f); }
+
+  // Operations
+  FINLINE constexpr Vec2 Add(const Vec2 &firstVec, const Vec2 &secondVec) {
+    return Vec2(firstVec.x + secondVec.x, firstVec.y + secondVec.y);
+  }
+
+  FINLINE constexpr Vec2 Subtract(const Vec2 &firstVec, const Vec2 &secondVec) {
+    return Vec2(firstVec.x - secondVec.x, firstVec.y - secondVec.y);
+  }
+
+  FINLINE constexpr Vec2 Multiply(const Vec2 &firstVec, const Vec2 &secondVec) {
+    return Vec2(firstVec.x * secondVec.x, firstVec.y * secondVec.y);
+  }
+
+  FINLINE constexpr Vec2 Divide(const Vec2 &firstVec, const Vec2 &secondVec) {
+    if (secondVec.x == 0.0f || secondVec.y == 0.0f) {
+      FWARN("Vec2::Divide(): Division by zero");
+      schar mulX = firstVec.x >= 0 ? 1 : -1;
+      schar mulY = firstVec.y >= 0 ? 1 : -1;
+      return Vec2(mulX * FE_F64MAX, mulY * FE_F64MAX);
+    }
+
+    return Vec2(firstVec.x / secondVec.x, firstVec.y / secondVec.y);
+  }
+
+  FINLINE constexpr Vec2 ScalarMultiply(const Vec2 &vec, float32 scalar) {
+    return Vec2(vec.x * scalar, vec.y * scalar);
+  }
+
+  FINLINE constexpr float32 SizeSquared(const Vec2 &vec) {
+    return vec.x * vec.x + vec.y * vec.y;
+  }
+
+  FINLINE constexpr float32 Size(const Vec2 &vec) {
+    return Sqrt(SizeSquared(vec));
+  }
+
+  FINLINE constexpr void Normalize(Vec2 *vec) {
+    const float32 LENGTH = Size(*vec);
+    if (LENGTH > 0.0f) {
+      vec->x /= LENGTH;
+      vec->y /= LENGTH;
+    } else {
+      FWARN("Vec2::Normalize(): FINLINE attempt to normalize a zero vector");
+    }
+  }
+
+  FINLINE constexpr Vec2 Normalized(Vec2 vec) {
+    Normalize(&vec);
+    return vec;
+  }
+
+  FINLINE constexpr float32 DistanceOf(const Vec2 &firstVec,
+                                       const Vec2 &secondVec) {
+    Vec2 dist(firstVec.x - secondVec.x, firstVec.y - secondVec.y);
+    return Size(dist);
+  }
+
+  FINLINE constexpr bool Equals(const Vec2 &firstVec, const Vec2 &secondVec,
+                                float32 tolerance = FE_F64EPS) {
+    return (Abs(firstVec.x - secondVec.x) <= tolerance &&
+            Abs(firstVec.y - secondVec.y) <= tolerance);
+  }
+
+  FINLINE constexpr float32 DotProduct(const Vec2 &firstVec,
+                                       const Vec2 &secondVec) {
+    float32 p = 0;
+    p += firstVec.x * secondVec.x;
+    p += firstVec.y * secondVec.y;
+    return p;
+  }
+
+  FINLINE constexpr Vec3 CurlProduct(const Vec2 &firstVec,
+                                     const Vec2 &secondVec) {
+    Vec3 firstVec3(firstVec.x, firstVec.y, 0.0f);
+    Vec3 secondVec3(secondVec.x, secondVec.y, 0.0f);
+    return Vec3::CurlProduct(firstVec3, secondVec3);
+  }
+
+  inline constexpr float32 SizeSquared() const { return x * x + y * y; }
+
+  inline constexpr float32 Size() const { return Sqrt(SizeSquared()); }
+
+  inline constexpr void Normalize() {
+    const float32 LENGTH = Sqrt(x * x + y * y);
+    if (LENGTH > 0.0f) {
+      x /= LENGTH;
+      y /= LENGTH;
+    } else {
+      FWARN("Vec2::Normalize(): attempt to normalize a zero vector");
+    }
+  }
+
+  // Operator Overloads
+  inline constexpr Vec2 operator+(const Vec2 &other) const {
+    return Vec2(x + other.x, y + other.y);
+  }
+
+  inline constexpr Vec2 operator-(const Vec2 &other) const {
+    return Vec2(x - other.x, y - other.y);
+  }
+
+  inline constexpr Vec2 operator*(const Vec2 &other) const {
+    return Vec2(x * other.x, y * other.y);
+  }
+
+  inline constexpr Vec2 operator*(float32 scalar) const {
+    return Vec2(x * scalar, y * scalar);
+  }
+
+  inline constexpr Vec2 operator/(const Vec2 &other) const {
+    if (other.x == 0.0f || other.y == 0.0f) {
+      FWARN("Vec2::operator/: Division by zero");
+      schar mulX = x >= 0 ? 1 : -1;
+      schar mulY = y >= 0 ? 1 : -1;
+      return Vec2(mulX * FE_F64MAX, mulY * FE_F64MAX);
+    }
+
+    return Vec2(x / other.x, y / other.y);
+  }
+
+  inline constexpr bool operator==(const Vec2 &other) const {
+    return (Abs(x - other.x) <= FE_F64EPS && Abs(y - other.y) <= FE_F64EPS);
+  }
+
+  inline constexpr float &operator[](uint32 index) {
+    FASSERT(index < _SIZE);
+    return elements[index];
+  }
+
+  inline const float32 &operator[](uint32 index) const {
+    FASSERT(index < _SIZE);
+    return elements[index];
+  }
+
+  inline constexpr string GetVecStr() const {
+    osstream out;
+    out << "Vec2(" << std::to_string(x) << ", " << std::to_string(y) << ")";
+    return out.str();
+  }
+
+private:
+  constexpr static uint32 _SIZE = 2;
 };
 
 // NOTE: This might be unnecessary for a 2D engine, but I'll defined it
