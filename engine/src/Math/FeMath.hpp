@@ -23,13 +23,13 @@ FINLINE bool IsPowerOf2(uint64 val) {
 }
 
 FEAPI sint32 GetRandomInt();
-FEAPI sint32 GetRandomInt(float32 min, float32 max);
+FEAPI sint32 GetRandomInt(sint32 min, sint32 max);
 
 FEAPI float32 GetRandomFloat();
 FEAPI float32 GetRandomFloat(float32 min, float32 max);
 
 
-}
+} // namespace math
 } // namespace flatearht
 
 #endif // _FLATEARTH_ENGINE_FE_MATH_HPP
