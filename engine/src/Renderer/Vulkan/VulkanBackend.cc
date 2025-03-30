@@ -1219,7 +1219,6 @@ void VulkanBackend::Shutdown() {
 void VulkanBackend::SwpCreate(uint32 width, uint32 height,
                               Swapchain *outSwapchain) {
   VkExtent2D swapchainExtent = {width, height};
-  outSwapchain->maxFrames = 2;
 
   bool found = FeFalse;
   for (uint32 i = 0; i < _context.device.swapchainSupport.formatCount; i++) {
@@ -1275,6 +1274,8 @@ void VulkanBackend::SwpCreate(uint32 width, uint32 height,
     // Safegard clamp
     imageCount = _context.device.swapchainSupport.capabilities.maxImageCount;
   }
+
+  outSwapchain->maxFrames = imageCount - 1;
 
   VkSwapchainCreateInfoKHR swapchainCreateInfo = {
       VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR};

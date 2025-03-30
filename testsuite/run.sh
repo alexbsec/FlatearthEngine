@@ -1,50 +1,58 @@
 #!/bin/bash
 
-set echo on
+set -e  # Stop on first error
 
-buildDir=./build
+buildDir="./build"
+linkPath=$(pwd)
+testingPath=$(pwd)
+binDir="../bin"
 
-echo "############################### BUILDING TESTBED ###############################"
+# ANSI Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+CYAN='\033[1;36m'
+YELLOW='\033[1;33m'
+RESET='\033[0m'
 
-echo "###################### Checking if build directory exists #####################"
+echo -e "${CYAN}############################### BUILDING TESTBED ###############################${RESET}"
 
+# Check build directory
+echo -e "${YELLOW}>> Checking if build directory exists...${RESET}"
 if [ ! -d "$buildDir" ]; then
-    echo "Making build directory..."
-    mkdir build
-    pushd build
-    echo "Running 'cmake ..'"
+    echo -e "${GREEN}Creating build directory...${RESET}"
+    mkdir "$buildDir"
+    pushd "$buildDir" > /dev/null
+    echo -e "${CYAN}Running 'cmake ..'${RESET}"
     cmake ..
-    popd
+    popd > /dev/null
 else
-    echo "Build directory exists!"
+    echo -e "${GREEN}Build directory exists!${RESET}"
 fi
 
-echo "############################# CMAKE STEP ######################################"
+# CMake step
+echo -e "${CYAN}############################# CMAKE STEP ######################################${RESET}"
 
 if [ -f compile_commands.json ]; then
-    echo "Cleaning old compile commands..."
+    echo -e "${YELLOW}Cleaning old compile commands...${RESET}"
     rm compile_commands.json
 fi
 
-echo "Creating compile_commands.json..."
-linkPath=$(pwd)
+echo -e "${GREEN}Creating compile_commands.json...${RESET}"
+cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B "$buildDir"
+ln -sf "${linkPath}/build/compile_commands.json" compile_commands.json 
 
-cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B build
-ln -s "${linkPath}/build/compile_commands.json" compile_commands.json 
+echo -e "${CYAN}Running CMake build...${RESET}"
+cmake --build "$buildDir"
 
-echo "Running CMake..."
-
-cmake --build build
-
-pushd build
-echo "Running make inside build..."
+echo -e "${CYAN}Running make inside build directory...${RESET}"
+pushd "$buildDir" > /dev/null
 make
-popd
+popd > /dev/null
 
-testingPath=$(pwd)
+# Copy test binary
+echo -e "${CYAN}Moving test executable to bin...${RESET}"
+mv -f "${testingPath}/build/flatearth_testsuite" "${binDir}/flatearth_testsuite"
 
-mv "${testingPath}/build/flatearth_testsuite" ../bin/flatearth_testsuite
+echo -e "${CYAN}############################# FINISHED ########################################${RESET}"
+echo -e "${GREEN}Testbed executable created successfully!${RESET}"
 
-echo "############################# FINISHED ########################################"
-
-echo "Testbed executable created!"

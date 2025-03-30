@@ -1,58 +1,65 @@
 #!/bin/bash
 
-set echo on
+set -e  # Exit on any error
 
-buildDir=./build
+buildDir="./build"
+linkPath=$(pwd)
+enginePath=$(pwd)
+binDir="../bin"
 
-echo "############################### BUILDING ENGINE ###############################"
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+RESET='\033[0m'
 
-echo "###################### Checking if build directory exists #####################"
+echo -e "${CYAN}############################### BUILDING ENGINE ###############################${RESET}"
 
+# Check build directory
+echo -e "${YELLOW}>> Checking if build directory exists...${RESET}"
 if [ ! -d "$buildDir" ]; then
-    echo "Making build directory..."
-    mkdir build
-    pushd build
-    echo "Running 'cmake ..'"
+    echo -e "${GREEN}Creating build directory...${RESET}"
+    mkdir "$buildDir"
+    pushd "$buildDir" > /dev/null
+    echo -e "${CYAN}Running 'cmake ..'${RESET}"
     cmake ..
-    popd
+    popd > /dev/null
 else
-    echo "Build directory exists!"
+    echo -e "${GREEN}Build directory exists!${RESET}"
 fi
 
-echo "############################# CMAKE STEP ######################################"
+# CMake step
+echo -e "${CYAN}############################# CMAKE STEP ######################################${RESET}"
 
 if [ -f compile_commands.json ]; then
-    echo "Cleaning old compile commands..."
+    echo -e "${YELLOW}Cleaning old compile commands...${RESET}"
     rm compile_commands.json
 fi
 
-linkPath=$(pwd)
-echo "Creating compile_commands.json..."
+echo -e "${GREEN}Creating compile_commands.json...${RESET}"
+cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B "$buildDir"
+ln -sf "${linkPath}/build/compile_commands.json" compile_commands.json 
 
-cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B build
-ln -s "${linkPath}/build/compile_commands.json" compile_commands.json 
+echo -e "${CYAN}Running CMake build...${RESET}"
+cmake --build "$buildDir"
 
-echo "Running CMake..."
-
-cmake --build build
-
-pushd build
-echo "Running make inside build..."
+echo -e "${CYAN}Running make inside build directory...${RESET}"
+pushd "$buildDir" > /dev/null
 make
-popd
+popd > /dev/null
 
-echo "############################# COPYING STEP ####################################"
+# Copying step
+echo -e "${CYAN}############################# COPYING STEP ####################################${RESET}"
 
-echo "Cleaning old library links..."
-rm -rf ../bin/libflatearth.so*
+echo -e "${YELLOW}Cleaning old library links...${RESET}"
+rm -rf "${binDir}/libflatearth.so"*
 
-enginePath=$(pwd)
+echo -e "${GREEN}Creating new symlinks...${RESET}"
+ln -sf "${enginePath}/build/libflatearth.so" "${binDir}/libflatearth.so"
+ln -sf "${enginePath}/build/libflatearth.so.0" "${binDir}/libflatearth.so.0"
+ln -sf "${enginePath}/build/libflatearth.so.0.1" "${binDir}/libflatearth.so.0.1"
 
-echo "Making new links..."
-ln -s "${enginePath}/build/libflatearth.so" ../bin/libflatearth.so
-ln -s "${enginePath}/build/libflatearth.so.0" ../bin/libflatearth.so.0
-ln -s "${enginePath}/build/libflatearth.so.0.1" ../bin/libflatearth.so.0.1
+echo -e "${CYAN}############################# FINISHED ########################################${RESET}"
+echo -e "${GREEN}Flatearth library built successfully!${RESET}"
 
-echo "############################# FINISHED ########################################"
-
-echo "Flatearth library created!"

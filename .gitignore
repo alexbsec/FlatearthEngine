@@ -8,3 +8,4 @@ testsuite/.cache
 testsuite/compile_commands.json
 .vs/*
 .vscode/*
+.nvim.lua
