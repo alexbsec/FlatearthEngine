@@ -8,6 +8,8 @@ namespace flatearth {
 namespace core {
 namespace application {
 
+const char *KeyToString(input::Keys key);
+
 struct ApplicationState App::_appState = {};
 
 bool App::_initialized = FeFalse;
@@ -244,7 +246,7 @@ bool App::OnKey(events::SystemEventCode code, void *sender, void *listener,
     } else if (keyCode == input::Keys::KEY_A) {
       FDEBUG("Explicit - A pressed");
     } else {
-      FDEBUG("'%c' key pressed in window.", static_cast<ushort>(keyCode));
+      FDEBUG("'%s' key pressed in window.", KeyToString(keyCode));
     }
   } else if (code == events::SystemEventCode::EVENT_CODE_KEY_RELEASED) {
     std::array<ushort, 8> keyContext = context.get<std::array<ushort, 8>>();
@@ -252,7 +254,7 @@ bool App::OnKey(events::SystemEventCode code, void *sender, void *listener,
     if (keyCode == input::Keys::KEY_B) {
       FDEBUG("Explicit - B key released");
     } else {
-      FDEBUG("'%c' key released in window.", static_cast<ushort>(keyCode));
+      FDEBUG("'%s' key released in window.", KeyToString(keyCode));
     }
   }
 
@@ -293,6 +295,267 @@ bool App::OnResized(events::SystemEventCode code, void *sender, void *listener,
   }
 
   return FeFalse;
+}
+
+const char *KeyToString(input::Keys key) {
+  using namespace input;
+
+  switch (key) {
+  case KEY_0:
+    return "0";
+  case KEY_1:
+    return "1";
+  case KEY_2:
+    return "2";
+  case KEY_3:
+    return "3";
+  case KEY_4:
+    return "4";
+  case KEY_5:
+    return "5";
+  case KEY_6:
+    return "6";
+  case KEY_7:
+    return "7";
+  case KEY_8:
+    return "8";
+  case KEY_9:
+    return "9";
+  case KEY_BACKSPACE:
+    return "Backspace";
+  case KEY_ENTER:
+    return "Enter";
+  case KEY_TAB:
+    return "Tab";
+  case KEY_SHIFT:
+    return "Shift";
+  case KEY_CONTROL:
+    return "Control";
+  case KEY_PAUSE:
+    return "Pause";
+  case KEY_CAPITAL:
+    return "Caps Lock";
+  case KEY_ESCAPE:
+    return "Escape";
+  case KEY_CONVERT:
+    return "Convert";
+  case KEY_NONCONVERT:
+    return "Nonconvert";
+  case KEY_ACCEPT:
+    return "Accept";
+  case KEY_MODECHANGE:
+    return "Mode Change";
+  case KEY_SPACE:
+    return "Space";
+  case KEY_PRIOR:
+    return "Page Up";
+  case KEY_NEXT:
+    return "Page Down";
+  case KEY_END:
+    return "End";
+  case KEY_HOME:
+    return "Home";
+  case KEY_LEFT:
+    return "Left Arrow";
+  case KEY_UP:
+    return "Up Arrow";
+  case KEY_RIGHT:
+    return "Right Arrow";
+  case KEY_DOWN:
+    return "Down Arrow";
+  case KEY_SELECT:
+    return "Select";
+  case KEY_PRINT:
+    return "Print";
+  case KEY_EXECUTE:
+    return "Execute";
+  case KEY_SNAPSHOT:
+    return "Print Screen";
+  case KEY_INSERT:
+    return "Insert";
+  case KEY_DELETE:
+    return "Delete";
+  case KEY_HELP:
+    return "Help";
+  case KEY_A:
+    return "A";
+  case KEY_B:
+    return "B";
+  case KEY_C:
+    return "C";
+  case KEY_D:
+    return "D";
+  case KEY_E:
+    return "E";
+  case KEY_F:
+    return "F";
+  case KEY_G:
+    return "G";
+  case KEY_H:
+    return "H";
+  case KEY_I:
+    return "I";
+  case KEY_J:
+    return "J";
+  case KEY_K:
+    return "K";
+  case KEY_L:
+    return "L";
+  case KEY_M:
+    return "M";
+  case KEY_N:
+    return "N";
+  case KEY_O:
+    return "O";
+  case KEY_P:
+    return "P";
+  case KEY_Q:
+    return "Q";
+  case KEY_R:
+    return "R";
+  case KEY_S:
+    return "S";
+  case KEY_T:
+    return "T";
+  case KEY_U:
+    return "U";
+  case KEY_V:
+    return "V";
+  case KEY_W:
+    return "W";
+  case KEY_X:
+    return "X";
+  case KEY_Y:
+    return "Y";
+  case KEY_Z:
+    return "Z";
+  case KEY_LWIN:
+    return "Left Win";
+  case KEY_RWIN:
+    return "Right Win";
+  case KEY_APPS:
+    return "Apps";
+  case KEY_SLEEP:
+    return "Sleep";
+  case KEY_NUMPAD0:
+    return "Numpad 0";
+  case KEY_NUMPAD1:
+    return "Numpad 1";
+  case KEY_NUMPAD2:
+    return "Numpad 2";
+  case KEY_NUMPAD3:
+    return "Numpad 3";
+  case KEY_NUMPAD4:
+    return "Numpad 4";
+  case KEY_NUMPAD5:
+    return "Numpad 5";
+  case KEY_NUMPAD6:
+    return "Numpad 6";
+  case KEY_NUMPAD7:
+    return "Numpad 7";
+  case KEY_NUMPAD8:
+    return "Numpad 8";
+  case KEY_NUMPAD9:
+    return "Numpad 9";
+  case KEY_MULTIPLY:
+    return "Numpad *";
+  case KEY_ADD:
+    return "Numpad +";
+  case KEY_SEPARATOR:
+    return "Separator";
+  case KEY_SUBTRACT:
+    return "Numpad -";
+  case KEY_DECIMAL:
+    return "Numpad .";
+  case KEY_DIVIDE:
+    return "Numpad /";
+  case KEY_F1:
+    return "F1";
+  case KEY_F2:
+    return "F2";
+  case KEY_F3:
+    return "F3";
+  case KEY_F4:
+    return "F4";
+  case KEY_F5:
+    return "F5";
+  case KEY_F6:
+    return "F6";
+  case KEY_F7:
+    return "F7";
+  case KEY_F8:
+    return "F8";
+  case KEY_F9:
+    return "F9";
+  case KEY_F10:
+    return "F10";
+  case KEY_F11:
+    return "F11";
+  case KEY_F12:
+    return "F12";
+  case KEY_F13:
+    return "F13";
+  case KEY_F14:
+    return "F14";
+  case KEY_F15:
+    return "F15";
+  case KEY_F16:
+    return "F16";
+  case KEY_F17:
+    return "F17";
+  case KEY_F18:
+    return "F18";
+  case KEY_F19:
+    return "F19";
+  case KEY_F20:
+    return "F20";
+  case KEY_F21:
+    return "F21";
+  case KEY_F22:
+    return "F22";
+  case KEY_F23:
+    return "F23";
+  case KEY_F24:
+    return "F24";
+  case KEY_NUMLOCK:
+    return "Num Lock";
+  case KEY_SCROLL:
+    return "Scroll Lock";
+  case KEY_NUMPAD_EQUAL:
+    return "Numpad =";
+  case KEY_LSHIFT:
+    return "Left Shift";
+  case KEY_RSHIFT:
+    return "Right Shift";
+  case KEY_LCONTROL:
+    return "Left Control";
+  case KEY_RCONTROL:
+    return "Right Control";
+  case KEY_LMENU:
+    return "Left Alt";
+  case KEY_RMENU:
+    return "Right Alt";
+  case KEY_SEMICOLON:
+    return "Semicolon";
+  case KEY_PLUS:
+    return "Plus";
+  case KEY_COMMA:
+    return "Comma";
+  case KEY_MINUS:
+    return "Minus";
+  case KEY_PERIOD:
+    return "Period";
+  case KEY_SLASH:
+    return "Slash";
+  case KEY_GRAVE:
+    return "Grave Accent";
+  case KEY_NULL:
+    return "Null";
+  case KEYS_MAX_KEYS:
+    return "MaxKeys";
+  default:
+    return "Unknown Key";
+  }
 }
 
 } // namespace application

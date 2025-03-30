@@ -71,6 +71,16 @@ enum Keys : ushort {
   DEFINE_KEY(RWIN, 0x5C),
   DEFINE_KEY(APPS, 0x5D),
   DEFINE_KEY(SLEEP, 0x5F),
+  DEFINE_KEY(0, 0x30),
+  DEFINE_KEY(1, 0x31),
+  DEFINE_KEY(2, 0x32),
+  DEFINE_KEY(3, 0x33),
+  DEFINE_KEY(4, 0x34),
+  DEFINE_KEY(5, 0x35),
+  DEFINE_KEY(6, 0x36),
+  DEFINE_KEY(7, 0x37),
+  DEFINE_KEY(8, 0x38),
+  DEFINE_KEY(9, 0x39),
   DEFINE_KEY(NUMPAD0, 0x60),
   DEFINE_KEY(NUMPAD1, 0x61),
   DEFINE_KEY(NUMPAD2, 0x62),
@@ -150,9 +160,9 @@ struct InputState {
 
 class InputManager {
 public:
-  FEAPI static InputManager& GetInstance();
+  FEAPI static InputManager &GetInstance();
   FEAPI ~InputManager();
-  
+
   /* INTERNALS */
   static void Update(float64 deltaTime);
   //
@@ -176,9 +186,9 @@ public:
   FEAPI bool IsButtonUp(Buttons button);
   FEAPI bool WasButtonDown(Buttons button);
   FEAPI bool WasButtonUp(Buttons button);
-  FEAPI void GetMousePosition(sint32 &x, sint32 &y); 
+  FEAPI void GetMousePosition(sint32 &x, sint32 &y);
   FEAPI void GetPreviousMousePosition(sint32 &x, sint32 &y);
-  
+
   // Getter
   InputState &GetState();
 

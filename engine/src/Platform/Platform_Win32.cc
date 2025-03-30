@@ -233,6 +233,22 @@ LRESULT CALLBACK win32ProcessMessage(HWND hwnd, uint32 msg, WPARAM wParam,
     bool pressed = (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN);
     flatearth::core::input::Keys key =
         static_cast<flatearth::core::input::Keys>((ushort)wParam);
+
+    if (wParam == VK_MENU) {
+      // Alt has been pressed
+      if (GetKeystate(VK_RMENU) & 0x8000) {
+        key = flatearth::core::input::KEY_RMENU;
+      } else if (GetKeystate(VK_LMENU) & 0x8000) {
+        key = flatearth::core::input::KEY_LMENU;
+      }
+    } else if (wParam == VK_SHIFT) {
+      if (GetKeystate(VK_RSHIFT) & 0x8000) {
+        key = flatearth::core::input::KEY_RSHIFT;
+      } else if (GetKeystate(VK_LSHIFT) & 0x8000) {
+        key = flatearth::core::input::KEY_LSHIFT;
+      }
+    }
+
     flatearth::core::input::InputManager::ProcessKey(key, pressed);
   } break;
 

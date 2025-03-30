@@ -7,6 +7,8 @@
 #include "Core/Logger.hpp"
 #include "Renderer/Vulkan/VulkanPlatform.hpp"
 
+#define XK_MISCELLANY
+#define XK_LATIN1
 #include <X11/XKBlib.h>
 #include <X11/Xlib-xcb.h>
 #include <X11/Xlib.h>
@@ -182,8 +184,9 @@ bool Platform::PollEvents() {
       xcb_key_press_event_t *keyEvent = (xcb_key_press_event_t *)event;
       bool pressed = event->response_type == XCB_KEY_PRESS;
       xcb_keycode_t code = keyEvent->detail;
-      KeySym keySymbol = XkbKeycodeToKeysym(inStatePtr->display, (KeyCode)code,
-                                            0, code & ShiftMask ? 1 : 0);
+      sint32 level = (keyEvent->state & XCB_MOD_MASK_SHIFT) ? 1 : 0;
+      KeySym keySymbol =
+          XkbKeycodeToKeysym(inStatePtr->display, (KeyCode)code, 0, level);
       core::input::Keys key = TranslateKeysymbol(keySymbol);
       core::input::InputManager::ProcessKey(key, pressed);
     } break;
@@ -302,6 +305,26 @@ void Platform::Sleep(uint64 milliseconds) {
 
 core::input::Keys TranslateKeysymbol(uint32 keySymbol) {
   switch (keySymbol) {
+  case XK_0:
+    return core::input::KEY_0;
+  case XK_1:
+    return core::input::KEY_1;
+  case XK_2:
+    return core::input::KEY_2;
+  case XK_3:
+    return core::input::KEY_3;
+  case XK_4:
+    return core::input::KEY_4;
+  case XK_5:
+    return core::input::KEY_5;
+  case XK_6:
+    return core::input::KEY_6;
+  case XK_7:
+    return core::input::KEY_7;
+  case XK_8:
+    return core::input::KEY_8;
+  case XK_9:
+    return core::input::KEY_9;
   case XK_BackSpace:
     return core::input::KEY_BACKSPACE;
   case XK_Return:
@@ -455,6 +478,10 @@ core::input::Keys TranslateKeysymbol(uint32 keySymbol) {
     return core::input::KEY_RCONTROL;
   // case XK_Menu: return core::input::KEY_LMENU;
   case XK_Menu:
+    return core::input::KEY_RMENU;
+  case XK_Alt_L:
+    return core::input::KEY_LMENU;
+  case XK_Alt_R:
     return core::input::KEY_RMENU;
   case XK_semicolon:
     return core::input::KEY_SEMICOLON;
