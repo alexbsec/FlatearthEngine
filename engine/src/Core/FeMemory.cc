@@ -66,9 +66,9 @@ void *MemoryManager::SetMemory(void *dest, sint32 value, uint64 size) {
 }
 
 string MemoryManager::PrintMemoryUsage() const {
-  const uint64 kib = 1024;
-  const uint64 mib = 1024 * kib;
-  const uint64 gib = 1024 * mib;
+  constexpr uint64 kib = 1024;
+  constexpr uint64 mib = 1024 * kib;
+  constexpr uint64 gib = 1024 * mib;
 
   std::ostringstream oss;
   oss << "System memory usage (tagged):\n";
