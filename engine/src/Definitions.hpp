@@ -2,10 +2,11 @@
 #define _FLATEARTH_ENGINE_DEFINITIONS_HPP
 
 #include <memory>
+#include <functional>
 #include <sstream>
 #include <string>
 
-using unique_void_ptr = std::unique_ptr<void, void (*)(void const *)>;
+using unique_void_ptr = std::unique_ptr<void, std::function<void(void const*)>>;
 
 namespace flatearth {
 namespace core {
