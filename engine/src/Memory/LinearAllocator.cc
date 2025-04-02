@@ -2,12 +2,12 @@
 
 #include "Core/FeMemory.hpp"
 #include "Core/Logger.hpp"
+#include <cstdint>
 
 namespace flatearth {
 namespace memory {
 
-LinearAllocator::LinearAllocator(uint64 totalSize, void *memory,
-                                 core::memory::MemoryTag tag)
+LinearAllocator::LinearAllocator(uint64 totalSize, void *memory)
     : _totalSize(totalSize), _allocated(0), _memory(memory),
       _ownsMemory(memory == nullptr) {}
 
@@ -23,25 +23,27 @@ LinearAllocator::~LinearAllocator() {
   _memory = nullptr;
 }
 
-void *LinearAllocator::Allocate(uint64 size) {
+void *LinearAllocator::Allocate(uint64 size, uint64 alignment) {
   if (!_memory) {
     // This should never happen!
     FERROR("LinearAllocator::Allocate(): Provided allocator not initialized!");
     return nullptr;
   }
 
+  uintptr_t currentAddr = reinterpret_cast<uintptr_t>(_memory) + _allocated;
+  uintptr_t alignedAddr = AlignForward(currentAddr, alignment);
+  uint64 adjustment = alignedAddr - currentAddr;
 
-  if (_allocated + size > _totalSize) {
+  if (_allocated + size + adjustment > _totalSize) {
     uint64 remaining = _totalSize - _allocated;
-    FERROR("LinearAllocator::Allocate(): Tried to allocate %lluB, only %lluB "
-           "remaining",
-           size, remaining);
+    FERROR("LinearAllocator::Allocate(): Tried to allocate %lluB (with %lluB "
+           "alignment), only %lluB remaining",
+           size, adjustment, remaining);
     return nullptr;
   }
 
-  void *block = static_cast<uchar *>(_memory) + _allocated;
-  _allocated += size;
-  return block;
+  _allocated += adjustment + size;
+  return reinterpret_cast<void *>(alignedAddr);
 }
 
 void LinearAllocator::FreaAll() {
