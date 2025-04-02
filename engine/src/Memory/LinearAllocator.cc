@@ -1,10 +1,10 @@
 #include "LinearAllocator.hpp"
 
-namespace flatearth {
-namespace memory {
-
 #include "Core/FeMemory.hpp"
 #include "Core/Logger.hpp"
+
+namespace flatearth {
+namespace memory {
 
 LinearAllocator::LinearAllocator(uint64 totalSize, void *memory,
                                  core::memory::MemoryTag tag)
