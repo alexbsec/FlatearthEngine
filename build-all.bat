@@ -17,4 +17,8 @@ pushd testsuite
 call .\run.bat
 popd
 
+pushd tests
+call .\run.bat
+popd
+
 pause
