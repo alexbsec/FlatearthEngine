@@ -43,9 +43,9 @@ shellHook = ''
   export CMAKE_PREFIX_PATH="${pkgs.xorg.libxcb}:${pkgs.xorg.libX11}:${pkgs.xorg.libXdmcp}:${pkgs.xorg.libXau}:${pkgs.fmt}:${pkgs.vulkan-loader}:${pkgs.vulkan-headers}:${pkgs.vulkan-tools}:${pkgs.pkg-config}:${pkgs.gcc}:${pkgs.cmake}"
   export LIBRARY_PATH="${pkgs.xorg.libXdmcp}/lib:${pkgs.xorg.libXau}/lib:$LIBRARY_PATH"
   export NIX_LDFLAGS="-L${pkgs.xorg.libXdmcp}/lib -L${pkgs.xorg.libXau}/lib"
+alias build-tests='cmake -S tests -B tests/build -DCMAKE_TOOLCHAIN_FILE=../nix-toolchain.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && cmake --build tests/build'
+alias build-engine='cmake -S engine -B engine/build -DCMAKE_TOOLCHAIN_FILE=../nix-toolchain.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && cmake --build engine/build'
 
-  alias build-engine='cmake -S engine -B engine/build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && cmake --build engine/build'
-  alias build-tests='cmake -S tests -B tests/build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && cmake --build tests/build'
   alias run-tests='./tests/build/flatearth_tests'
 '';
 
