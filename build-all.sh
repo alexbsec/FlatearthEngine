@@ -11,3 +11,7 @@ popd
 pushd testsuite
 ./run.sh
 popd
+
+pushd tests
+./run.sh
+popd
