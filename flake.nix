@@ -24,7 +24,10 @@
           xorg.libX11
           xorg.libxcb
           xorg.xcbutilkeysyms
+          xorg.libXdmcp
+          xorg.libXau
         ];
+
 
       in {
         devShells.default = pkgs.mkShell {
