@@ -34,34 +34,35 @@ void TestManager::RunTests() {
     if (result == FeTrue) {
       passed++;
     } else if (result == BYPASS) {
-      FWARN("[SKIPPED]: %s", _tests[i].description.c_str());
+      FWARN("[FE/TESTS] - [SKIPPED]: %s", _tests[i].description.c_str());
       skipped++;
     } else {
-      FERROR("[FAILED]: %s", _tests[i].description.c_str());
+      FERROR("[FE/TESTS] - [FAILED]: %s", _tests[i].description.c_str());
       failed++;
     }
 
     string status;
     if (result == FeTrue) {
-      status = "[✓] PASS: %d";
+      status = "[FE/TESTS] - [✓] PASS: %d";
       status = core::Sprintf(status, passed);
     } else if (result == BYPASS) {
-      status = "[~] SKIPPED: %d";
-      status = core::Sprintf(status, skipped); 
+      status = "[FE/TESTS] - [~] SKIPPED: %d";
+      status = core::Sprintf(status, skipped);
     } else {
-      status = "[✗] FAIL: %d";
+      status = "[FE/TESTS] - [✗] FAIL: %d";
       status = core::Sprintf(status, failed);
     }
 
     testTimeClock.Update();
-    FINFO("Executed %d of %d (skipped %d) %s (%.6f sec / %.6f sec total)",
-          i + 1, count, skipped, status.c_str(), testTimeClock.elapsed,
+    totalTimeClock.Update();
+    FINFO("%s. Executed %d of %d in (%.6f sec / %.6f sec total)",
+          status.c_str(), i + 1, count, testTimeClock.elapsed,
           totalTimeClock.elapsed);
   }
 
   totalTimeClock.Stop();
   uint32 total = passed + failed + skipped;
-  FINFO("Results: %d passed | %d failed | %d skipped | %d total", passed,
+  FINFO("[FE/TESTS] - Results: %d passed | %d failed | %d skipped | %d total", passed,
         failed, skipped, total);
 }
 

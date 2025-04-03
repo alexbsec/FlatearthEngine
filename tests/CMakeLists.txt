@@ -24,8 +24,9 @@ link_directories("${CMAKE_SOURCE_DIR}/../bin")
 #   SOURCE FILES
 
 # Add your test source files here
-set(SOURCE_FILES
-    "${CMAKE_SOURCE_DIR}/src/main.cc"
+file(GLOB_RECURSE SOURCE_FILES
+    "${CMAKE_SOURCE_DIR}/src/*.cc"
+    "${CMAKE_SOURCE_DIR}/src/*.hpp"
 )
 
 ############################################################################

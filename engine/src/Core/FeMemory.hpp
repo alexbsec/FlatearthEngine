@@ -87,9 +87,8 @@ public:
   StatefulCustomDeleter(uint64 allocatedSize, MemoryTag tag)
       : _allocatedSize(allocatedSize), _tag(tag) {}
 
-  void operator()(T* ptr) const {
+  void operator()(void* ptr) const {
     if (ptr) {
-      ptr->~T(); 
       core::memory::MemoryManager::Free(ptr, _allocatedSize, _tag);
     }
   }
@@ -98,6 +97,7 @@ private:
   uint64 _allocatedSize = 0;
   MemoryTag _tag = MEMORY_TAG_UNKNOWN;
 };
+
 
 
 template <typename T>
