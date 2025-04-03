@@ -14,6 +14,10 @@ public:
   FEAPI void *Allocate(uint64 size, uint64 alignment = 8);
   FEAPI void FreaAll();
 
+  FEAPI uint64 GetTotalSize() const;
+  FEAPI uint64 GetAllocatedSize() const;
+  FEAPI void *GetMemory() const;
+
   FINLINE uintptr_t AlignForward(uintptr_t address, uint64 alignment) {
     return (address + (alignment - 1)) & ~(alignment - 1);
   }

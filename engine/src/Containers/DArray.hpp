@@ -13,7 +13,7 @@ namespace containers {
 
 template <typename T>
 using unique_darray_ptr =
-    std::unique_ptr<T[], core::memory::StatefulCustomDeleter<T>>;
+    std::unique_ptr<void, core::memory::StatefulCustomDeleter<T>>;
 
 template <typename T> class DArray {
 public:
@@ -263,10 +263,10 @@ template <typename T> void DArray<T>::Clear() {
   _length = 0;
 }
 
-template <typename T> T *DArray<T>::Data() noexcept { return _array.get(); }
+template <typename T> T *DArray<T>::Data() noexcept { return reinterpret_cast<T *>(_array.get()); }
 
 template <typename T> const T *DArray<T>::Data() const noexcept {
-  return _array.get();
+  return reinterpret_cast<T *>(_array.get());
 }
 
 template <typename T> T &DArray<T>::operator[](uint64 index) {

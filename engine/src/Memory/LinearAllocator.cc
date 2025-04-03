@@ -9,11 +9,17 @@ namespace memory {
 
 LinearAllocator::LinearAllocator(uint64 totalSize, void *memory)
     : _totalSize(totalSize), _allocated(0), _memory(memory),
-      _ownsMemory(memory == nullptr) {}
+      _ownsMemory(memory == nullptr) {
+
+  if (!memory) {
+    _memory = core::memory::MemoryManager::Allocate(
+        totalSize, core::memory::MEMORY_TAG_LINEAR_ALLOCATOR);
+  }
+}
 
 LinearAllocator::~LinearAllocator() {
   _allocated = 0;
-  if (_memory) {
+  if (_memory && _ownsMemory) {
     core::memory::MemoryManager::Free(
         _memory, _totalSize, core::memory::MEMORY_TAG_LINEAR_ALLOCATOR);
   }
@@ -54,6 +60,12 @@ void LinearAllocator::FreaAll() {
   _allocated = 0;
   core::memory::MemoryManager::ZeroMemory(_memory, _totalSize);
 }
+
+uint64 LinearAllocator::GetTotalSize() const { return _totalSize; }
+
+uint64 LinearAllocator::GetAllocatedSize() const { return _allocated; }
+
+void *LinearAllocator::GetMemory() const { return _memory; }
 
 } // namespace memory
 } // namespace flatearth
