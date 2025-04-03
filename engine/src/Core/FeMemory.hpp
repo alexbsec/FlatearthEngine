@@ -27,6 +27,7 @@ enum MemoryTag {
   MEMORY_TAG_ENTITY,
   MEMORY_TAG_ENTITY_NODE,
   MEMORY_TAG_SCENE,
+  MEMORY_TAG_LINEAR_ALLOCATOR,
 
   MEMORY_TAG_MAX_TAGS,
 };
@@ -107,8 +108,23 @@ template <typename T>
 using unique_stateful_renderer_ptr =
     std::unique_ptr<T, core::memory::StatefulCustomDeleter<T>>;
 
+inline auto make_unique_void(void* ptr, uint64 size, MemoryTag tag, bool ownsMemory) -> unique_void_ptr {
+  if (ownsMemory) {
+    return unique_void_ptr(ptr, [=](void const* data) {
+      if (data) {
+        core::memory::MemoryManager::Free(const_cast<void*>(data), size, tag);
+      }
+    });
+  } else {
+    return unique_void_ptr(ptr, [](void const*) {
+      // do nothing, not owner
+    });
+  }
+}
+
 } // namespace memory
 } // namespace core
 } // namespace flatearth
+
 
 #endif // _FLATEARTH_ENGINE_FE_MEMORY_HPP
