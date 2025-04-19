@@ -51,7 +51,7 @@ struct ApplicationState {
 class App {
 public:
   FEAPI static App &GetInstance();
-  FEAPI static void SetGameInstance(struct gametypes::Game *gameInstance);
+  FEAPI static void Preload(struct gametypes::Game *gameInstance);
   FEAPI ~App();
 
   FEAPI bool Init();
@@ -76,8 +76,7 @@ private:
   events::EventCallback OnResizedCallback;
   events::EventCallback OnEventCallback;
   events::EventCallback OnKeyCallback;
-  static ApplicationState _appState;
-  static bool _initialized;
+  static ApplicationState *_appState;
   std::unique_ptr<logger::Logger> _logger;
   std::unique_ptr<platform::Platform> _platform;
   std::unique_ptr<renderer::FrontendRenderer> _frontendRenderer;

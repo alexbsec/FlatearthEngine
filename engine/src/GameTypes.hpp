@@ -28,6 +28,9 @@ struct Game {
   // Game-specific Game state. Created and managed by the Game
   void *state;
 
+  // Application state
+  void *applicationState;
+
   Game()
       : Initialize(nullptr), Update(nullptr), Render(nullptr),
         OnResize(nullptr) {}

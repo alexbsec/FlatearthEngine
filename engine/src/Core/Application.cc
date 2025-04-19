@@ -1,5 +1,6 @@
 #include "Application.hpp"
 #include "Core/Event.hpp"
+#include "Core/FeMemory.hpp"
 #include "GameTypes.hpp"
 #include "Renderer/RendererFrontend.hpp"
 #include "Renderer/RendererTypes.inl"
@@ -10,17 +11,24 @@ namespace application {
 
 const char *KeyToString(input::Keys key);
 
-struct ApplicationState App::_appState = {};
-
-bool App::_initialized = FeFalse;
+struct ApplicationState *App::_appState = {};
 
 App &App::GetInstance() {
-  static App instance(_appState.gameInstance);
+  static App instance(_appState->gameInstance);
   return instance;
 }
 
-void App::SetGameInstance(struct gametypes::Game *gameInstance) {
-  _appState.gameInstance = gameInstance;
+void App::Preload(struct gametypes::Game *gameInstance) {
+  if (_appState && _appState->gameInstance->applicationState) {
+    FFATAL("App::Init(): app initializer was called more than once!");
+    return;
+  }
+
+  gameInstance->applicationState = core::memory::MemoryManager::Allocate(
+      sizeof(ApplicationState), core::memory::MEMORY_TAG_APPLICATION);
+  _appState =
+      reinterpret_cast<ApplicationState *>(gameInstance->applicationState);
+  _appState->gameInstance = gameInstance;
 }
 
 App::~App() {
@@ -33,15 +41,9 @@ App::~App() {
       events::SystemEventCode::EVENT_CODE_KEY_RELEASED, 0, OnKeyCallback);
   _eventManager.UnregisterEvent(events::SystemEventCode::EVENT_CODE_RESIZED, 0,
                                 OnResizedCallback);
-  _initialized = FeFalse;
 }
 
 bool App::Init() {
-  if (_initialized) {
-    FFATAL("App::Init(): app initializer was called more than once!");
-    return FeFalse;
-  }
-
   OnEventCallback = [this](events::SystemEventCode code, void *sender,
                            void *listener,
                            const events::EventContext &context) {
@@ -70,58 +72,57 @@ bool App::Init() {
                               nullptr, OnResizedCallback);
 
   // Set the application as running and not suspended
-  _appState.isRunning = FeTrue;
-  _appState.isSuspended = FeFalse;
+  _appState->isRunning = FeTrue;
+  _appState->isSuspended = FeFalse;
 
   try {
     _platform = std::make_unique<platform::Platform>(
-        _appState.gameInstance->appConfig.name,
-        _appState.gameInstance->appConfig.startPosX,
-        _appState.gameInstance->appConfig.startPosY,
-        _appState.gameInstance->appConfig.startWidth,
-        _appState.gameInstance->appConfig.startHeight);
+        _appState->gameInstance->appConfig.name,
+        _appState->gameInstance->appConfig.startPosX,
+        _appState->gameInstance->appConfig.startPosY,
+        _appState->gameInstance->appConfig.startWidth,
+        _appState->gameInstance->appConfig.startHeight);
   } catch (const std::exception &e) {
     FFATAL("App::Init(): failed to create platform: %s", e.what());
     return FeFalse;
   }
 
-  _appState.platform = _platform->GetState();
+  _appState->platform = _platform->GetState();
 
   try {
     _frontendRenderer = std::make_unique<renderer::FrontendRenderer>(
-        _appState.gameInstance->appConfig.name, _appState.platform);
+        _appState->gameInstance->appConfig.name, _appState->platform);
   } catch (const std::exception &e) {
     FFATAL("App::Init(): failed to create frontend renderer: %s", e.what());
     return FeFalse;
   }
 
-  if (!_appState.gameInstance->Initialize(_appState.gameInstance)) {
+  if (!_appState->gameInstance->Initialize(_appState->gameInstance)) {
     FFATAL("App::Init(): failed to initialize application");
     return FeFalse;
   }
 
-  _appState.gameInstance->OnResize(_appState.gameInstance, _appState.width,
-                                   _appState.height);
+  _appState->gameInstance->OnResize(_appState->gameInstance, _appState->width,
+                                    _appState->height);
 
-  _initialized = FeTrue;
   return FeTrue;
 }
 
 bool App::Run() {
-  if (!_initialized) {
+  if (!_appState->gameInstance->applicationState) {
     FWARN("App::Run(): run method was called, but app was not initialized.");
     return FeFalse;
   }
 
   // Clock setup
-  _appState.clock.Start();
-  _appState.clock.Update();
-  _appState.lastTime = _appState.clock.elapsed;
+  _appState->clock.Start();
+  _appState->clock.Update();
+  _appState->lastTime = _appState->clock.elapsed;
   float64 runningTime = 0.0f;
   uchar frameCount = 0;
   float64 targetFrameSeconds = 1.0f / 60;
 
-  while (_appState.isRunning) {
+  while (_appState->isRunning) {
 
     // TODO: fix this mess, it's actually ok for now but might complicate things
     // further
@@ -130,27 +131,27 @@ bool App::Run() {
 #elif FEPLATFORM_LINUX
     if (!_platform->PollEvents()) {
       FDEBUG("App::Run(): closing window was requested");
-      _appState.isRunning = FeFalse;
+      _appState->isRunning = FeFalse;
     }
 #endif
 
-    if (_appState.isSuspended) {
+    if (_appState->isSuspended) {
       continue;
     }
 
-    _appState.clock.Update();
-    float64 currentTime = _appState.clock.elapsed;
-    float64 deltaTime = (currentTime - _appState.lastTime);
+    _appState->clock.Update();
+    float64 currentTime = _appState->clock.elapsed;
+    float64 deltaTime = (currentTime - _appState->lastTime);
     float64 frameStartTime = platform::Platform::GetAbsoluteTime();
 
-    if (!_appState.gameInstance->Update(_appState.gameInstance,
-                                        (float32)deltaTime)) {
+    if (!_appState->gameInstance->Update(_appState->gameInstance,
+                                         (float32)deltaTime)) {
       FFATAL("App::Run(): game update failed, shutting down application...");
       break;
     }
 
-    if (!_appState.gameInstance->Render(_appState.gameInstance,
-                                        (float32)deltaTime)) {
+    if (!_appState->gameInstance->Render(_appState->gameInstance,
+                                         (float32)deltaTime)) {
       FFATAL("App::Run(): game render failed, shutting down application...");
       break;
     }
@@ -182,25 +183,25 @@ bool App::Run() {
     _inputManager.Update(deltaTime);
 
     // Update last time
-    _appState.lastTime = currentTime;
+    _appState->lastTime = currentTime;
   }
 
-  _appState.isRunning = FeFalse;
+  _appState->isRunning = FeFalse;
 
   return FeTrue;
 }
 
 void App::GetFrameBufferSize(uint32 *width, uint32 *height) {
-  *width = _appState.width;
-  *height = _appState.height;
+  *width = _appState->width;
+  *height = _appState->height;
 }
 
 void App::ShutDown() {
-  if (!_initialized) {
+  if (!_appState->gameInstance->applicationState) {
     return;
   }
 
-  _appState.isRunning = FeFalse;
+  _appState->isRunning = FeFalse;
 }
 
 // Private members
@@ -210,7 +211,7 @@ App::App(struct gametypes::Game *gameInstance)
       _inputManager(core::input::InputManager::GetInstance()),
       _frontendRenderer(nullptr) {
 
-  _appState.gameInstance = gameInstance;
+  _appState->gameInstance = gameInstance;
 
   // TODO: implement logger constructor
   _logger = std::make_unique<logger::Logger>();
@@ -224,7 +225,7 @@ bool App::OnEvent(events::SystemEventCode code, void *sender, void *listener,
   case events::SystemEventCode::EVENT_CODE_APPLICATION_QUIT:
     FINFO("App::AppOnEvent(): EVENT_CODE_APPLICATION_QUIT received, shutting "
           "down...");
-    _appState.isRunning = FeFalse;
+    _appState->isRunning = FeFalse;
     return FeTrue;
   default:
     break;
@@ -272,25 +273,25 @@ bool App::OnResized(events::SystemEventCode code, void *sender, void *listener,
   ushort height = changeContext[1];
 
   // Check if different, if so trigger event
-  if (width != _appState.width || height != _appState.height) {
-    _appState.width = width;
-    _appState.height = height;
+  if (width != _appState->width || height != _appState->height) {
+    _appState->width = width;
+    _appState->height = height;
 
     FDEBUG("App::OnResize(): window resizing: %i, %i", width, height);
 
     if (width == 0 || height == 0) {
       // Minimization
       FINFO("App::OnResize(): window minimized, suspending application.");
-      _appState.isSuspended = FeTrue;
+      _appState->isSuspended = FeTrue;
       return FeTrue;
     }
 
-    if (_appState.isSuspended) {
+    if (_appState->isSuspended) {
       FINFO("App::OnResize(): window restored, resuming application.");
-      _appState.isSuspended = FeFalse;
+      _appState->isSuspended = FeFalse;
     }
 
-    _appState.gameInstance->OnResize(_appState.gameInstance, width, height);
+    _appState->gameInstance->OnResize(_appState->gameInstance, width, height);
     _frontendRenderer->OnResize(width, height);
   }
 
