@@ -14,9 +14,12 @@ MemoryBlock MemoryManager::_memoryBlock;
 bool MemoryManager::_initialized = FeFalse;
 
 static constexpr std::array<vstring, MEMORY_TAG_MAX_TAGS> memTagNames = {
-    "UNKNOWN", "ARRAY",       "DARRAY", "DICT",        "RING_QUEUE", "BST",
-    "STRING",  "APPLICATION", "JOB",    "TEXTURE",     "MAT_INST",   "RENDERER",
-    "GAME",    "TRANSFORM",   "ENTITY", "ENTITY_NODE", "SCENE"};
+    "UNKNOWN",     "ARRAY",       "DARRAY",
+    "DICT",        "RING_QUEUE",  "BST",
+    "STRING",      "APPLICATION", "JOB",
+    "TEXTURE",     "MAT_INST",    "RENDERER",
+    "GAME",        "TRANSFORM",   "ENTITY",
+    "ENTITY_NODE", "SCENE",       "LINEAR_ALLOCATOR"};
 
 MemoryManager &MemoryManager::GetInstance() {
   static MemoryManager instance = MemoryManager();
@@ -27,7 +30,6 @@ MemoryManager::~MemoryManager() {
   FINFO("MemoryManager::~MemoryManager(): shutting down memory manager...");
   _initialized = FeFalse;
 }
-
 
 void *MemoryManager::Allocate(uint64 size, MemoryTag tag) {
   CheckTag(tag, "MemoryManager::Allocate()");
@@ -92,7 +94,7 @@ string MemoryManager::PrintMemoryUsage() const {
     }
 
     const string &out =
-        std::format("{:<15}: {:>10.2f} {}\n", memTagNames[i], amount, unit);
+        std::format("{:<17}: {:>10.2f} {}\n", memTagNames[i], amount, unit);
     oss << out;
     std::print("{}", out);
   }
@@ -114,6 +116,11 @@ MemoryManager::MemoryManager() {
 }
 
 void MemoryManager::CheckTag(MemoryTag tag, const string &from) {
+  if (tag < 0 || tag >= MEMORY_TAG_MAX_TAGS) {
+    FERROR("%s: Invalid memory tag index (%d)", from.c_str(), tag);
+    return; 
+  }
+
   if (tag == MEMORY_TAG_UNKNOWN) {
     FWARN("%s: calling memory management using MEMORY_TAG_UNKNOWN. Consider "
           "re-classing this block",

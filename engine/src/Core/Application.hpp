@@ -3,9 +3,11 @@
 
 #include "Core/Clock.hpp"
 #include "Core/Event.hpp"
+#include "Core/FeMemory.hpp"
 #include "Core/Input.hpp"
 #include "Definitions.hpp"
 #include "Logger.hpp"
+#include "Memory/LinearAllocator.hpp"
 #include "Platform/Platform.hpp"
 #include "Renderer/RendererFrontend.hpp"
 
@@ -19,6 +21,18 @@ struct Game;
 
 namespace core {
 namespace application {
+
+using unique_logger_ptr =
+    std::unique_ptr<core::logger::Logger,
+                    memory::StatefulCustomDeleter<core::logger::Logger>>;
+
+using unique_platform_ptr =
+    std::unique_ptr<platform::Platform,
+                    memory::StatefulCustomDeleter<platform::Platform>>;
+
+using unique_frontend_renderer_ptr = 
+    std::unique_ptr<renderer::FrontendRenderer,
+                    memory::StatefulCustomDeleter<renderer::FrontendRenderer>>;
 
 struct AppConfig {
   // Window starting x axis position
@@ -46,6 +60,8 @@ struct ApplicationState {
   sshort height;
   float64 lastTime;
   core::clock::Clock clock;
+
+  flatearth::memory::LinearAllocator systemAllocator;
 };
 
 class App {
@@ -71,15 +87,17 @@ private:
   bool OnResized(events::SystemEventCode code, void *sender, void *listener,
                  const events::EventContext &context);
 
+  bool AllocateAll();
+
   // Private variables
   // TODO: track memory allocated for each subsystem
   events::EventCallback OnResizedCallback;
   events::EventCallback OnEventCallback;
   events::EventCallback OnKeyCallback;
   static ApplicationState *_appState;
-  std::unique_ptr<logger::Logger> _logger;
-  std::unique_ptr<platform::Platform> _platform;
-  std::unique_ptr<renderer::FrontendRenderer> _frontendRenderer;
+  unique_logger_ptr _logger;
+  unique_platform_ptr _platform;
+  unique_frontend_renderer_ptr _frontendRenderer;
   core::events::EventManager &_eventManager;
   core::input::InputManager &_inputManager;
 };

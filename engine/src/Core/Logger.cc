@@ -1,11 +1,11 @@
 #include "Logger.hpp"
 #include "Asserts.hpp"
+#include "Core/FeMemory.hpp"
 #include "Platform/Platform.hpp"
 
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
-#include <print>
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
@@ -18,13 +18,41 @@ namespace logger {
 constexpr size_t LOGGER_BUFFER_SIZE = 32000;
 
 Logger::Logger() {
-  // TODO: create constructor
   FINFO("Logger::Logger(): logger was correctly initialized");
 }
 
 Logger::~Logger() {
   FINFO("Logger::~Logger(): shutting down logger...");
-  // TODO: create destructor
+
+  if (_ownsMemory && _loggerState) {
+    core::memory::MemoryManager::Free(_loggerState, sizeof(LoggerSystemState),
+                                      memory::MEMORY_TAG_APPLICATION);
+    _loggerState = nullptr;
+  }
+}
+
+constexpr uint64 Logger::SizeOfLoggerSystem() {
+  return sizeof(LoggerSystemState);
+}
+
+constexpr uint64 Logger::AlignOfLoggerSystem() {
+  return alignof(LoggerSystemState);
+}
+
+bool Logger::Init(uint64 *memoryRequirement, void *state) {
+  *memoryRequirement = sizeof(LoggerSystemState);
+  if (state == nullptr) {
+    _loggerState = reinterpret_cast<LoggerSystemState *>(
+        core::memory::MemoryManager::Allocate(
+            *memoryRequirement, core::memory::MEMORY_TAG_APPLICATION));
+    _ownsMemory = true;
+    return FeTrue;
+  } 
+
+  _loggerState = reinterpret_cast<LoggerSystemState *>(state);
+  _ownsMemory = false;
+  _loggerState->initialized = FeTrue;
+  return FeTrue;
 }
 
 FEAPI void LogOutput(LogLevel level, const char *message, ...) {

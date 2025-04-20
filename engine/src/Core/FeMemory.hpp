@@ -2,6 +2,7 @@
 #define _FLATEARTH_ENGINE_FE_MEMORY_HPP
 
 #include "Definitions.hpp"
+#include "Core/Logger.hpp"
 
 #include <array>
 
@@ -39,9 +40,15 @@ template <typename T> auto make_unique_void(T *ptr) -> unique_void_ptr {
   });
 }
 
-template <typename T> T *get_unique_void_ptr(const unique_void_ptr &ptr) {
-  return static_cast<T *>(ptr.get());
+template <typename T>
+T* get_unique_void_ptr(const unique_void_ptr& ptr) {
+  if (!ptr) {
+    FFATAL("get_unique_void_ptr<T>(): ptr is null");
+    return nullptr;
+  }
+  return reinterpret_cast<T*>(ptr.get());
 }
+
 
 struct MemoryBlock {
   uint64 totalAllocated;

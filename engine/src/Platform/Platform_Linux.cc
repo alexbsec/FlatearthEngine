@@ -188,6 +188,9 @@ bool Platform::PollEvents() {
       KeySym keySymbol =
           XkbKeycodeToKeysym(inStatePtr->display, (KeyCode)code, 0, level);
       core::input::Keys key = TranslateKeysymbol(keySymbol);
+      FDEBUG("Raw keycode = %d, keysym = 0x%lx (%s), mapped to enum = %d",
+             keyEvent->detail, keySymbol, XKeysymToString(keySymbol),
+             (sint32)key);
       core::input::InputManager::ProcessKey(key, pressed);
     } break;
     case XCB_BUTTON_PRESS:
@@ -584,6 +587,11 @@ core::input::Keys TranslateKeysymbol(uint32 keySymbol) {
 
 bool CreateVulkanSurface(struct PlatformState *platState,
                          struct renderer::vulkan::Context *context) {
+  if (platState == nullptr) {
+    FFATAL("CreateVulkanSurface(): platState is nullptr! Aborting...");
+    return FeFalse;
+  }
+
   InternalState *inStatePtr = core::memory::get_unique_void_ptr<InternalState>(
       platState->internalState);
 

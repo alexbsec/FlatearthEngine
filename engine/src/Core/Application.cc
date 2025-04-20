@@ -1,7 +1,10 @@
 #include "Application.hpp"
 #include "Core/Event.hpp"
 #include "Core/FeMemory.hpp"
+#include "Core/Logger.hpp"
 #include "GameTypes.hpp"
+#include "Memory/LinearAllocator.hpp"
+#include "Platform/Platform.hpp"
 #include "Renderer/RendererFrontend.hpp"
 #include "Renderer/RendererTypes.inl"
 
@@ -44,6 +47,12 @@ App::~App() {
 }
 
 bool App::Init() {
+  if (!AllocateAll()) {
+    FFATAL("App::Init(): failed to allocate memory for one of the "
+           "application's internal systems!");
+    return FeFalse;
+  }
+
   OnEventCallback = [this](events::SystemEventCode code, void *sender,
                            void *listener,
                            const events::EventContext &context) {
@@ -75,27 +84,7 @@ bool App::Init() {
   _appState->isRunning = FeTrue;
   _appState->isSuspended = FeFalse;
 
-  try {
-    _platform = std::make_unique<platform::Platform>(
-        _appState->gameInstance->appConfig.name,
-        _appState->gameInstance->appConfig.startPosX,
-        _appState->gameInstance->appConfig.startPosY,
-        _appState->gameInstance->appConfig.startWidth,
-        _appState->gameInstance->appConfig.startHeight);
-  } catch (const std::exception &e) {
-    FFATAL("App::Init(): failed to create platform: %s", e.what());
-    return FeFalse;
-  }
-
   _appState->platform = _platform->GetState();
-
-  try {
-    _frontendRenderer = std::make_unique<renderer::FrontendRenderer>(
-        _appState->gameInstance->appConfig.name, _appState->platform);
-  } catch (const std::exception &e) {
-    FFATAL("App::Init(): failed to create frontend renderer: %s", e.what());
-    return FeFalse;
-  }
 
   if (!_appState->gameInstance->Initialize(_appState->gameInstance)) {
     FFATAL("App::Init(): failed to initialize application");
@@ -214,7 +203,6 @@ App::App(struct gametypes::Game *gameInstance)
   _appState->gameInstance = gameInstance;
 
   // TODO: implement logger constructor
-  _logger = std::make_unique<logger::Logger>();
 
   FINFO("App::App(): application was correctly initialized");
 }
@@ -296,6 +284,64 @@ bool App::OnResized(events::SystemEventCode code, void *sender, void *listener,
   }
 
   return FeFalse;
+}
+
+bool App::AllocateAll() {
+  uint64 systemAllocatorTotalSize = 64 * 1024 * 1024;
+  new (&_appState->systemAllocator)
+      flatearth::memory::LinearAllocator(systemAllocatorTotalSize, nullptr);
+
+  void *mem = memory::MemoryManager::Allocate(sizeof(core::logger::Logger),
+                                              memory::MEMORY_TAG_APPLICATION);
+  auto *logger = new (mem) core::logger::Logger();
+  _logger = unique_logger_ptr(
+      logger,
+      memory::StatefulCustomDeleter<core::logger::Logger>(
+          sizeof(core::logger::Logger), memory::MEMORY_TAG_APPLICATION));
+
+  uint64 loggerSystemMemSize = 0;
+
+  if (!_logger->Init(&loggerSystemMemSize, nullptr)) {
+    FERROR("App::AllocateAll(): failed to initialize logging system!");
+    return FeFalse;
+  }
+
+  try {
+    void *mem = memory::MemoryManager::Allocate(sizeof(platform::Platform),
+                                                memory::MEMORY_TAG_APPLICATION);
+    auto *platform = new (mem)
+        platform::Platform(_appState->gameInstance->appConfig.name,
+                           _appState->gameInstance->appConfig.startPosX,
+                           _appState->gameInstance->appConfig.startPosY,
+                           _appState->gameInstance->appConfig.startWidth,
+                           _appState->gameInstance->appConfig.startHeight);
+    _platform = unique_platform_ptr(
+        platform,
+        memory::StatefulCustomDeleter<platform::Platform>(
+            sizeof(platform::Platform), memory::MEMORY_TAG_APPLICATION));
+    _appState->platform = _platform->GetState();
+  } catch (const std::exception &e) {
+    FFATAL("App::AllocateAll(): failed to create platform: %s", e.what());
+    return FeFalse;
+  }
+
+  try {
+    void *mem = core::memory::MemoryManager::Allocate(
+        sizeof(renderer::FrontendRenderer), memory::MEMORY_TAG_APPLICATION);
+    auto *frontendRenderer = new (mem) renderer::FrontendRenderer(
+        _appState->gameInstance->appConfig.name, _appState->platform);
+    _frontendRenderer = unique_frontend_renderer_ptr(
+        frontendRenderer,
+        core::memory::StatefulCustomDeleter<renderer::FrontendRenderer>(
+            sizeof(renderer::FrontendRenderer),
+            core::memory::MEMORY_TAG_APPLICATION));
+  } catch (const std::exception &e) {
+    FFATAL("App::AllocateAll(): failed to create frontend renderer: %s",
+           e.what());
+    return FeFalse;
+  }
+
+  return FeTrue;
 }
 
 const char *KeyToString(input::Keys key) {

@@ -27,10 +27,22 @@ typedef enum LogLevel {
   LOG_LEVEL_TRACE = 5,
 } LogLevel;
 
+struct LoggerSystemState {
+  bool initialized; 
+};
+
 class Logger {
 public:
   Logger();
   ~Logger();
+
+  static constexpr uint64 SizeOfLoggerSystem();
+  static constexpr uint64 AlignOfLoggerSystem();
+  bool Init(uint64 *memoryRequirement, void *state);
+
+private:
+  LoggerSystemState *_loggerState = nullptr;
+  bool _ownsMemory = false;
 };
 
 FEAPI void LogOutput(LogLevel level, const char *message, ...);
