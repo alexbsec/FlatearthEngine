@@ -40,13 +40,12 @@ private:
   T *GetAddressOf(uint64 index) noexcept;
   const T *GetAddressOf(uint64 index) const noexcept;
   static constexpr uint64 _stride = sizeof(T);
-  std::unique_ptr<
-      T[], core::memory::StatelessCustomDeleter<T, Size, core::memory::MEMORY_TAG_ARRAY>>
+  std::unique_ptr<T[], core::memory::StatelessCustomDeleter<
+                           T, Size, core::memory::MEMORY_TAG_ARRAY>>
       _array;
 };
 
-template <typename T, uint64 Size>
-SArray<T, Size>::SArray() {
+template <typename T, uint64 Size> SArray<T, Size>::SArray() {
   if (Size == 0) {
     FERROR("SArray<T, Size>::SArray(): attempt to create a 0 size array");
     throw std::runtime_error("Cannot create 0-sized static array");
@@ -57,7 +56,8 @@ SArray<T, Size>::SArray() {
                                     T, Size, core::memory::MEMORY_TAG_ARRAY>>(
       reinterpret_cast<T *>(core::memory::MemoryManager::Allocate(
           headerSize + arraySize, core::memory::MEMORY_TAG_ARRAY)),
-      core::memory::StatelessCustomDeleter<T, Size, core::memory::MEMORY_TAG_ARRAY>());
+      core::memory::StatelessCustomDeleter<T, Size,
+                                           core::memory::MEMORY_TAG_ARRAY>());
 
   core::memory::MemoryManager::SetMemory(_array.get(), 0,
                                          headerSize + arraySize);
@@ -69,8 +69,7 @@ SArray<T, Size>::SArray() {
   _initialized = FeTrue;
 }
 
-template <typename T, uint64 Size>
-SArray<T, Size>::~SArray() {
+template <typename T, uint64 Size> SArray<T, Size>::~SArray() {
   if (_initialized) {
     for (uint64 i = 0; i < Size; i++) {
       GetAddressOf(i)->~T();
