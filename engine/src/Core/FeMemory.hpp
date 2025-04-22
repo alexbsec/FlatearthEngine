@@ -68,6 +68,7 @@ class MemoryManager {
 public:
   FEAPI static MemoryManager &GetInstance();
   FEAPI static void Preload(struct gametypes::Game *gameInstance);
+  FEAPI static void TestPreload();
   FEAPI ~MemoryManager();
 
   FEAPI static void *Allocate(uint64 size, MemoryTag tag);

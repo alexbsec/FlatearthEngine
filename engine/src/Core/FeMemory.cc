@@ -47,6 +47,17 @@ void MemoryManager::Preload(struct gametypes::Game *gameInstance) {
       sizeof(MemorySystemState);
 }
 
+void MemoryManager::TestPreload() {
+  if (_memoryState) return;
+
+  void* raw = platform::Platform::PAllocateMemory(sizeof(MemorySystemState), FeFalse);
+  platform::Platform::PZeroMemory(raw, sizeof(MemorySystemState));
+  _memoryState = reinterpret_cast<MemorySystemState*>(raw);
+  _memoryState->stats.totalAllocated += sizeof(MemorySystemState);
+  _memoryState->stats.taggedAllocations[MEMORY_TAG_MEMORY_MGR] += sizeof(MemorySystemState);
+  _initialized = FeTrue;
+}
+
 MemoryManager::~MemoryManager() {
   FINFO("MemoryManager::~MemoryManager(): shutting down memory manager...");
   _memoryState = nullptr;

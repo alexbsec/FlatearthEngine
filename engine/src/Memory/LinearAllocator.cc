@@ -10,7 +10,6 @@ namespace memory {
 LinearAllocator::LinearAllocator(uint64 totalSize, void *memory)
     : _totalSize(totalSize), _allocated(0), _memory(memory),
       _ownsMemory(memory == nullptr) {
-
   if (!memory) {
     _memory = core::memory::MemoryManager::Allocate(
         totalSize, core::memory::MEMORY_TAG_LINEAR_ALLOCATOR);
