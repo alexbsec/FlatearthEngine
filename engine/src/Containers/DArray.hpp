@@ -245,7 +245,7 @@ template <typename T> void DArray<T>::PopAt(uint64 index) {
   // Shift elements to the left.
   for (uint64 i = index; i < _length - 1; i++) {
     T *dest = GetAddressOf(i);
-    T *source = GetAddressOf(i - 1);
+    T *source = GetAddressOf(i + 1);
     *dest = std::move(*source);
   }
 
@@ -263,7 +263,9 @@ template <typename T> void DArray<T>::Clear() {
   _length = 0;
 }
 
-template <typename T> T *DArray<T>::Data() noexcept { return reinterpret_cast<T *>(_array.get()); }
+template <typename T> T *DArray<T>::Data() noexcept {
+  return reinterpret_cast<T *>(_array.get());
+}
 
 template <typename T> const T *DArray<T>::Data() const noexcept {
   return reinterpret_cast<T *>(_array.get());
