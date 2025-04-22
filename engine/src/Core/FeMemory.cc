@@ -30,11 +30,12 @@ MemoryManager &MemoryManager::GetInstance() {
 
 void MemoryManager::Preload(struct gametypes::Game *gameInstance) {
   if (_memoryState) {
-    FFATAL("MemoryManager::Preload(): memory manager initializer called more "
+    FWARN("MemoryManager::Preload(): memory manager preloader called more "
            "than once!");
     return;
   }
 
+  // Bootstrap memory manager allocation directly from platform
   void *raw =
       platform::Platform::PAllocateMemory(sizeof(MemorySystemState), FeFalse);
   platform::Platform::PZeroMemory(raw, sizeof(MemorySystemState));
@@ -48,13 +49,18 @@ void MemoryManager::Preload(struct gametypes::Game *gameInstance) {
 }
 
 void MemoryManager::TestPreload() {
-  if (_memoryState) return;
+  if (_memoryState)
+    return;
 
-  void* raw = platform::Platform::PAllocateMemory(sizeof(MemorySystemState), FeFalse);
+  // This is for testing purposes (otherwise we won't be able to preload
+  // the memory manager)
+  void *raw =
+      platform::Platform::PAllocateMemory(sizeof(MemorySystemState), FeFalse);
   platform::Platform::PZeroMemory(raw, sizeof(MemorySystemState));
-  _memoryState = reinterpret_cast<MemorySystemState*>(raw);
+  _memoryState = reinterpret_cast<MemorySystemState *>(raw);
   _memoryState->stats.totalAllocated += sizeof(MemorySystemState);
-  _memoryState->stats.taggedAllocations[MEMORY_TAG_MEMORY_MGR] += sizeof(MemorySystemState);
+  _memoryState->stats.taggedAllocations[MEMORY_TAG_MEMORY_MGR] +=
+      sizeof(MemorySystemState);
   _initialized = FeTrue;
 }
 

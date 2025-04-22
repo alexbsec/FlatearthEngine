@@ -12,6 +12,11 @@ namespace math {
 // NOTE: this is only needed for SIMD 3D
 constexpr static uint32 ALIGNMENT = 16;
 
+enum AngleUnits {
+  ANGLE_RADIANS,
+  ANGLE_DEGREES,
+};
+
 class Vec3 {
 public:
   union {
@@ -208,14 +213,22 @@ class Vec2 {
 public:
   union {
     struct {
-      union {
-        float32 x, r, s, u;
-      };
-      union {
-        float32 y, g, t, v;
-      };
+      float32 x;
+      float32 y;
     };
-    float elements[2];
+    struct {
+      float32 r;
+      float32 g;
+    };
+    struct {
+      float32 s;
+      float32 t;
+    };
+    struct {
+      float32 u;
+      float32 v;
+    };
+    float32 elements[2];
   };
 
   // Constructors
@@ -335,6 +348,8 @@ public:
     return Vec2(x - other.x, y - other.y);
   }
 
+  inline constexpr Vec2 operator-() const { return Vec2(-x, -y); }
+
   inline constexpr Vec2 operator*(const Vec2 &other) const {
     return Vec2(x * other.x, y * other.y);
   }
@@ -376,6 +391,139 @@ public:
 
 private:
   constexpr static uint32 _SIZE = 2;
+};
+
+class Vec2i {
+public:
+  float32 x, y;
+
+  Vec2i() : x(0.0f), y(0.0f), _value(0.0f, 0.0f) {}
+  Vec2i(float32 real, float32 imag) : x(real), y(imag), _value(real, imag) {}
+  Vec2i(const Vec2 &base) : x(base.x), y(base.y), _value(base) {}
+
+  FINLINE constexpr Vec2i Zero() { return Vec2i(0.0f, 0.0f); }
+
+  FINLINE constexpr Vec2 ToVec2(const Vec2i &vec) {
+    return Vec2(vec._value.x, vec._value.y);
+  }
+
+  inline constexpr Vec2 ToVec2() const { return Vec2(_value.x, _value.y); }
+
+  // Accessors
+  inline constexpr float32 Real() const { return _value.x; }
+
+  inline constexpr float32 Imag() const { return _value.y; }
+
+  inline constexpr Vec2i Conjugate() const { return Vec2i(_value.x, -_value.y); }
+
+  inline constexpr Vec2i operator+(const Vec2i &other) const {
+    return Vec2i(_value.x + other._value.x, _value.y + other._value.y);
+  }
+
+  inline constexpr Vec2i operator-(const Vec2i &other) const {
+    return Vec2i(_value.x - other._value.x, _value.y - other._value.y);
+  }
+
+  inline constexpr Vec2i operator*(const Vec2i &other) const {
+    return Vec2i(_value.x * other._value.x - _value.y * other._value.y,
+                 _value.x * other._value.y + _value.y * other._value.x);
+  }
+
+  inline constexpr Vec2i operator*(float32 scalar) const {
+    return Vec2i(scalar * _value.x, scalar * _value.y);
+  }
+
+  inline constexpr Vec2i operator/(const Vec2i &other) const {
+    float32 denom =
+        other._value.x * other._value.x + other._value.y * other._value.y;
+    if (denom == 0.0f) {
+      FWARN("Vec2i::operator/: Division by zero in complex division");
+      return Vec2i(FE_F64MAX, FE_F64MAX);
+    }
+
+    return Vec2i((_value.x * other._value.x + _value.y * other._value.y) / denom,
+                 (_value.y * other._value.x - _value.x * other._value.y) / denom);
+  }
+
+  inline constexpr bool operator==(const Vec2i &other) const {
+    return _value.x == other._value.x && _value.y == other._value.y;
+  }
+
+  inline constexpr bool operator!=(const Vec2i &other) const {
+    return _value.x != other._value.x || _value.y != other._value.y;
+  }
+
+  FINLINE constexpr float32 DotProduct(const Vec2i &vec1, const Vec2i &vec2) {
+    return vec1._value.x * vec2._value.x + vec1._value.y * vec2._value.y;
+  }
+
+  inline constexpr float32 DotProduct(const Vec2i &other) const {
+    return _value.x * other._value.x + _value.y * other._value.y;
+  }
+
+  inline constexpr Vec2i operator-() const { return Vec2i(-_value.x, -_value.y); }
+
+  inline constexpr void Normalize() {
+    float32 mag = Magnitude();
+    if (mag > 0.0f) {
+      _value.x /= mag;
+      _value.y /= mag;
+    } else {
+      FWARN("Vec2i::Normalize(): attempt to normalize a zero complex number");
+    }
+  }
+
+  inline constexpr Vec2i Normalized() const {
+    float32 mag = Magnitude();
+    if (mag > 0.0f) {
+      return Vec2i(_value.x / mag, _value.y / mag);
+    } else {
+      FWARN("Vec2i::Normalized(): attempt to normalize a zero complex number");
+      return *this;
+    }
+  }
+
+  inline constexpr float32 Magnitude() const {
+    return Sqrt(_value.x * _value.x + _value.y * _value.y);
+  }
+
+  inline constexpr float32 MaginitudeSquared() const {
+    return _value.x * _value.x + _value.y * _value.y;
+  }
+
+  FINLINE Vec2i FromAngle(float32 angle, AngleUnits unit = ANGLE_RADIANS) {
+    if (unit == ANGLE_DEGREES) {
+      angle *= FE_PI / 180;
+    }
+
+    return Vec2i(Cos(angle), Sin(angle));
+  }
+
+  FINLINE constexpr Vec2 Rotate(const Vec2 &vec, float32 angle,
+                                AngleUnits unit = ANGLE_RADIANS) {
+    Vec2i rot = FromAngle(angle, unit);
+    Vec2i vi(vec);
+    return (rot * vi).ToVec2();
+  }
+
+  inline constexpr Vec2i Rotated(float32 angle,
+                                 AngleUnits unit = ANGLE_RADIANS) const {
+    return *this * FromAngle(angle, unit);
+  }
+
+  inline constexpr bool IsUnit(float32 eps = FE_F64EPS) const {
+    return Abs(Magnitude() - 1.0f) <= eps;
+  }
+
+  string GetComplexStr() const {
+    osstream out;
+    out << "Vec2i(" << std::to_string(_value.x) << " + "
+        << std::to_string(_value.y) << "i)";
+    return out.str();
+  }
+
+private:
+  Vec2 _value;
 };
 
 // NOTE: This might be unnecessary for a 2D engine, but I'll defined it
