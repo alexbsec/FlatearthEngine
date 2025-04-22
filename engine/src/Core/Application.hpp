@@ -90,7 +90,6 @@ private:
   bool AllocateAll();
 
   // Private variables
-
   // Event Callbacks 
   events::EventCallback OnResizedCallback;
   events::EventCallback OnEventCallback;
