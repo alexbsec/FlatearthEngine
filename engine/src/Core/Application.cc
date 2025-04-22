@@ -287,10 +287,12 @@ bool App::OnResized(events::SystemEventCode code, void *sender, void *listener,
 }
 
 bool App::AllocateAll() {
+  // Setup linear allocator
   uint64 systemAllocatorTotalSize = 64 * 1024 * 1024;
   new (&_appState->systemAllocator)
       flatearth::memory::LinearAllocator(systemAllocatorTotalSize, nullptr);
 
+  // Allocate memory for Logger
   void *mem = memory::MemoryManager::Allocate(sizeof(core::logger::Logger),
                                               memory::MEMORY_TAG_APPLICATION);
   auto *logger = new (mem) core::logger::Logger();
@@ -299,14 +301,15 @@ bool App::AllocateAll() {
       memory::StatefulCustomDeleter<core::logger::Logger>(
           sizeof(core::logger::Logger), memory::MEMORY_TAG_APPLICATION));
 
+  // Init with nullptr makes logger obj to own its memory
   uint64 loggerSystemMemSize = 0;
-
   if (!_logger->Init(&loggerSystemMemSize, nullptr)) {
     FERROR("App::AllocateAll(): failed to initialize logging system!");
     return FeFalse;
   }
 
   try {
+    // Allocate memory for platform
     void *mem = memory::MemoryManager::Allocate(sizeof(platform::Platform),
                                                 memory::MEMORY_TAG_APPLICATION);
     auto *platform = new (mem)
@@ -319,6 +322,7 @@ bool App::AllocateAll() {
         platform,
         memory::StatefulCustomDeleter<platform::Platform>(
             sizeof(platform::Platform), memory::MEMORY_TAG_APPLICATION));
+    // _appState platform must point to _platform obj
     _appState->platform = _platform->GetState();
   } catch (const std::exception &e) {
     FFATAL("App::AllocateAll(): failed to create platform: %s", e.what());
@@ -326,6 +330,7 @@ bool App::AllocateAll() {
   }
 
   try {
+    // Allocate memory for the frontend renderer
     void *mem = core::memory::MemoryManager::Allocate(
         sizeof(renderer::FrontendRenderer), memory::MEMORY_TAG_APPLICATION);
     auto *frontendRenderer = new (mem) renderer::FrontendRenderer(

@@ -90,14 +90,21 @@ private:
   bool AllocateAll();
 
   // Private variables
-  // TODO: track memory allocated for each subsystem
+
+  // Event Callbacks 
   events::EventCallback OnResizedCallback;
   events::EventCallback OnEventCallback;
   events::EventCallback OnKeyCallback;
+
+  // Application state ptr
   static ApplicationState *_appState;
+
+  // Internals
   unique_logger_ptr _logger;
   unique_platform_ptr _platform;
   unique_frontend_renderer_ptr _frontendRenderer;
+
+  // Make these as copies because their ownership are shared
   core::events::EventManager &_eventManager;
   core::input::InputManager &_inputManager;
 };
