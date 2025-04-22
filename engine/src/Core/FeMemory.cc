@@ -1,5 +1,6 @@
 #include "FeMemory.hpp"
 
+#include "GameTypes.hpp"
 #include "Logger.hpp"
 #include "Platform/Platform.hpp"
 #include <ostream>
@@ -10,7 +11,7 @@ namespace flatearth {
 namespace core {
 namespace memory {
 
-MemoryBlock MemoryManager::_memoryBlock;
+MemorySystemState *MemoryManager::_memoryState;
 bool MemoryManager::_initialized = FeFalse;
 
 static constexpr std::array<vstring, MEMORY_TAG_MAX_TAGS> memTagNames = {
@@ -19,15 +20,36 @@ static constexpr std::array<vstring, MEMORY_TAG_MAX_TAGS> memTagNames = {
     "STRING",      "APPLICATION", "JOB",
     "TEXTURE",     "MAT_INST",    "RENDERER",
     "GAME",        "TRANSFORM",   "ENTITY",
-    "ENTITY_NODE", "SCENE",       "LINEAR_ALLOCATOR"};
+    "ENTITY_NODE", "SCENE",       "LINEAR_ALLOCATOR",
+    "MEMORY_MGR"};
 
 MemoryManager &MemoryManager::GetInstance() {
   static MemoryManager instance = MemoryManager();
   return instance;
 }
 
+void MemoryManager::Preload(struct gametypes::Game *gameInstance) {
+  if (_memoryState) {
+    FFATAL("MemoryManager::Preload(): memory manager initializer called more "
+           "than once!");
+    return;
+  }
+
+  void *raw =
+      platform::Platform::PAllocateMemory(sizeof(MemorySystemState), FeFalse);
+  platform::Platform::PZeroMemory(raw, sizeof(MemorySystemState));
+  _memoryState = reinterpret_cast<MemorySystemState *>(raw);
+  gameInstance->memoryState = _memoryState;
+
+  // Manual tracking since Allocate() was bypassed
+  _memoryState->stats.totalAllocated += sizeof(MemorySystemState);
+  _memoryState->stats.taggedAllocations[MEMORY_TAG_MEMORY_MGR] +=
+      sizeof(MemorySystemState);
+}
+
 MemoryManager::~MemoryManager() {
   FINFO("MemoryManager::~MemoryManager(): shutting down memory manager...");
+  _memoryState = nullptr;
   _initialized = FeFalse;
 }
 
@@ -35,9 +57,11 @@ void *MemoryManager::Allocate(uint64 size, MemoryTag tag) {
   CheckTag(tag, "MemoryManager::Allocate()");
 
   // Track how much memory used by category
-  _memoryBlock.totalAllocated += size;
-  _memoryBlock.taggedAllocations[tag] += size;
-
+  if (_memoryState) {
+    _memoryState->stats.totalAllocated += size;
+    _memoryState->stats.taggedAllocations[tag] += size;
+    _memoryState->allocCount++;
+  }
   // TODO: memory alignment
   bool aligned = FeFalse;
   void *block = platform::Platform::PAllocateMemory(size, aligned);
@@ -48,8 +72,8 @@ void *MemoryManager::Allocate(uint64 size, MemoryTag tag) {
 void MemoryManager::Free(void *block, uint64 size, MemoryTag tag) {
   CheckTag(tag, "MemoryManager::Free()");
 
-  _memoryBlock.totalAllocated -= size;
-  _memoryBlock.taggedAllocations[tag] -= size;
+  _memoryState->stats.totalAllocated -= size;
+  _memoryState->stats.taggedAllocations[tag] -= size;
 
   bool aligned = FeFalse;
   platform::Platform::PFreeMemory(block, aligned);
@@ -78,7 +102,7 @@ string MemoryManager::PrintMemoryUsage() const {
   for (uint64 i = 0; i < MEMORY_TAG_MAX_TAGS; i++) {
     string unit = "XiB";
     float32 amount = 1.0f;
-    const uint64 &taggedAlloc = _memoryBlock.taggedAllocations[i];
+    const uint64 &taggedAlloc = _memoryState->stats.taggedAllocations[i];
     if (taggedAlloc >= gib) {
       unit[0] = 'G';
       amount = taggedAlloc / (float32)gib;
@@ -110,15 +134,14 @@ MemoryManager::MemoryManager() {
           "instance of memory manager");
   }
 
-  FINFO("MemoryManager::MemoryManager(): memory manager correctly initialized");
-  platform::Platform::PZeroMemory(&_memoryBlock, sizeof(_memoryBlock));
   _initialized = FeTrue;
+  FINFO("MemoryManager::MemoryManager(): memory manager correctly initialized");
 }
 
 void MemoryManager::CheckTag(MemoryTag tag, const string &from) {
   if (tag < 0 || tag >= MEMORY_TAG_MAX_TAGS) {
     FERROR("%s: Invalid memory tag index (%d)", from.c_str(), tag);
-    return; 
+    return;
   }
 
   if (tag == MEMORY_TAG_UNKNOWN) {

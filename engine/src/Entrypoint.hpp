@@ -9,15 +9,16 @@
 extern bool CreateGame(flatearth::gametypes::Game *gameOut);
 
 int main(void) {
-  flatearth::core::memory::MemoryManager &memoryManager =
-      flatearth::core::memory::MemoryManager::GetInstance();
-
   flatearth::gametypes::Game gameInst;
 
   if (!CreateGame(&gameInst)) {
     FFATAL("main(): could not create game!");
     return -2;
   }
+
+  flatearth::core::memory::MemoryManager::Preload(&gameInst);
+  flatearth::core::memory::MemoryManager &memoryManager =
+      flatearth::core::memory::MemoryManager::GetInstance();
 
   // Ensure the function pointers are defined
   if (!gameInst.Initialize || !gameInst.Update || !gameInst.Render ||
