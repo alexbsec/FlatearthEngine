@@ -7,6 +7,11 @@
 #include <array>
 
 namespace flatearth {
+
+namespace gametypes {
+  struct Game;
+}
+
 namespace core {
 namespace memory {
 
@@ -29,7 +34,7 @@ enum MemoryTag {
   MEMORY_TAG_ENTITY_NODE,
   MEMORY_TAG_SCENE,
   MEMORY_TAG_LINEAR_ALLOCATOR,
-
+  MEMORY_TAG_MEMORY_MGR,
   MEMORY_TAG_MAX_TAGS,
 };
 
@@ -49,15 +54,20 @@ T* get_unique_void_ptr(const unique_void_ptr& ptr) {
   return reinterpret_cast<T*>(ptr.get());
 }
 
-
 struct MemoryBlock {
   uint64 totalAllocated;
   std::array<uint64, MEMORY_TAG_MAX_TAGS> taggedAllocations;
 };
 
+struct MemorySystemState {
+  MemoryBlock stats;
+  uint64 allocCount;
+};
+
 class MemoryManager {
 public:
   FEAPI static MemoryManager &GetInstance();
+  FEAPI static void Preload(struct gametypes::Game *gameInstance);
   FEAPI ~MemoryManager();
 
   FEAPI static void *Allocate(uint64 size, MemoryTag tag);
@@ -71,7 +81,7 @@ private:
   MemoryManager();
   static void CheckTag(MemoryTag tag, const string &from);
 
-  static MemoryBlock _memoryBlock;
+  static MemorySystemState *_memoryState;
   static bool _initialized;
 };
 

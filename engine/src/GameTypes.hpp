@@ -31,6 +31,9 @@ struct Game {
   // Application state
   void *applicationState;
 
+  // Memory state
+  void *memoryState;
+
   Game()
       : Initialize(nullptr), Update(nullptr), Render(nullptr),
         OnResize(nullptr) {}
