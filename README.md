@@ -88,7 +88,7 @@ the following commands
 sudo apt update
 sudo apt install -y libx11-dev libxcb1-dev libxcb-keysyms1-dev libxcb-icccm4-dev \
 libxcb-image0-dev libxcb-shm0-dev libxcb-xfixes0-dev libxcb-randr0-dev libxcb-render-util0-dev \
-libxcb-xinerama0-dev libxcb-glx0-dev
+libxcb-xinerama0-dev libxcb-glx0-dev libx11-xcb-dev
 ```
 
 #### RHEL/Fedora
