@@ -189,10 +189,10 @@ bool VulkanBackend::Initialize(const char *applicationName,
 
   // Sync object creation
   FDEBUG("VulkanBackend::Initialize(): Creating sync objects & fences...");
-  _context.imageAvailableSemaphores.Reserve(_context.swapchain.maxFrames);
-  _context.queueCompleteSemaphores.Reserve(_context.swapchain.maxFrames);
-  _context.inFlightFences.Reserve(_context.swapchain.maxFrames);
-  for (uint32 i = 0; i < _context.swapchain.maxFrames; i++) {
+  _context.imageAvailableSemaphores.Reserve(_context.swapchain.imageCount);
+  _context.queueCompleteSemaphores.Reserve(_context.swapchain.imageCount);
+  _context.inFlightFences.Reserve(_context.swapchain.imageCount);
+  for (uint32 i = 0; i < _context.swapchain.imageCount; i++) {
     VkSemaphoreCreateInfo semaphoreCreateInfo = {};
     semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreCreateInfo.pNext = nullptr;
@@ -272,7 +272,7 @@ bool VulkanBackend::BeginFrame(float32 deltaTime) {
 
   // Wait for the execution of the current frame to complete. The fence being
   // free will allow this one to move on
-  if (!FenceWait(&_context.inFlightFences[_context.currentFrame], UINT64_MAX)) {
+  if (!FenceWait(&_context.inFlightFences[_context.imageIndex], UINT64_MAX)) {
     FWARN("VulkanBackend::BeginFrame(): In-flight fence wait failed");
     return FeFalse;
   }
@@ -284,7 +284,7 @@ bool VulkanBackend::BeginFrame(float32 deltaTime) {
   // the queue submission to ensure this image is available
   if (!SwapchainAcquireNextImage(
           &_context.swapchain, UINT64_MAX,
-          _context.imageAvailableSemaphores[_context.currentFrame], FENCE,
+          _context.imageAvailableSemaphores[_context.imageIndex], FENCE,
           &_context.imageIndex)) {
     return FeFalse;
   }
@@ -340,15 +340,15 @@ bool VulkanBackend::EndFrame(float32 deltaTime) {
   // Make sure previous frame is not using this image (i.e. its fence is being
   // waited on)
   if (_context.imagesInFlight[_context.imageIndex] != VK_NULL_HANDLE) {
-    FenceWait(&_context.inFlightFences[_context.currentFrame], UINT64_MAX);
+    FenceWait(&_context.inFlightFences[_context.imageIndex], UINT64_MAX);
   }
 
   // Mark the image as in use by this frame
   _context.imagesInFlight[_context.imageIndex] =
-      &_context.inFlightFences[_context.currentFrame];
+      &_context.inFlightFences[_context.imageIndex];
 
   // Reset the fence for use on the next frame
-  FenceReset(&_context.inFlightFences[_context.currentFrame]);
+  FenceReset(&_context.inFlightFences[_context.imageIndex]);
 
   // Submit the queue and wait for the operation to complete
   VkSubmitInfo submitInfo = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
@@ -356,10 +356,10 @@ bool VulkanBackend::EndFrame(float32 deltaTime) {
   submitInfo.pCommandBuffers = &cmdBuffer->handle;
   submitInfo.waitSemaphoreCount = 1;
   submitInfo.pWaitSemaphores =
-      &_context.imageAvailableSemaphores[_context.currentFrame];
+      &_context.imageAvailableSemaphores[_context.imageIndex];
   submitInfo.signalSemaphoreCount = 1;
   submitInfo.pSignalSemaphores =
-      &_context.queueCompleteSemaphores[_context.currentFrame];
+      &_context.queueCompleteSemaphores[_context.imageIndex];
 
   constexpr uint32 FLAG_COUNT = 1;
   constexpr uint32 SUBMIT_COUNT = 1;
@@ -373,7 +373,7 @@ bool VulkanBackend::EndFrame(float32 deltaTime) {
 
   VkResult result =
       vkQueueSubmit(device->graphicsQueue, SUBMIT_COUNT, &submitInfo,
-                    _context.inFlightFences[_context.currentFrame].handle);
+                    _context.inFlightFences[_context.imageIndex].handle);
   if (result != VK_SUCCESS) {
     FERROR("VulkanBackend::EndFrame(): vkQueueSubmit failed: '%s'",
            utils::VkResultToString(result, FeTrue));
@@ -385,7 +385,7 @@ bool VulkanBackend::EndFrame(float32 deltaTime) {
   // Give the image back to the swapchain
   SwapchainPresent(&_context.swapchain, device->graphicsQueue,
                    device->presentQueue,
-                   _context.queueCompleteSemaphores[_context.currentFrame],
+                   _context.queueCompleteSemaphores[_context.imageIndex],
                    _context.imageIndex);
 
   return FeTrue;
@@ -675,6 +675,7 @@ void VulkanBackend::SwapchainPresent(Swapchain *swapchain,
 
   // Increment and loop the index
   _context.currentFrame = (_context.currentFrame + 1) % swapchain->maxFrames;
+  _context.imageIndex = (_context.imageIndex + 1) % swapchain->imageCount;
 }
 
 /****** IMAGE LOGIC IMPLEMENTATION ******/
@@ -1156,7 +1157,7 @@ void VulkanBackend::Shutdown() {
   vkDeviceWaitIdle(_context.device.logicalDevice);
 
   FDEBUG("VulkanBackend::Shutdown(): Destroying sync objects & fences...");
-  for (uchar i = 0; i < _context.swapchain.maxFrames; i++) {
+  for (uchar i = 0; i < _context.swapchain.imageCount; i++) {
     if (_context.imageAvailableSemaphores[i]) {
       vkDestroySemaphore(_context.device.logicalDevice,
                          _context.imageAvailableSemaphores[i],
